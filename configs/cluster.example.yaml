@@ -1,0 +1,81 @@
+# Example Cluster Configuration
+# This is an example of a complete cluster configuration
+
+cluster_id: "example-01"
+name: "Example Cluster"
+description: "An example cluster with Redis, PostgreSQL, and Kafka"
+
+# Define your infrastructure services
+services:
+  # PostgreSQL Database
+  primary_db:
+    type: postgres
+    host: localhost
+    port: 5432
+    username: postgres
+    password: password
+    database: myapp
+    pool:
+      min_connections: 2
+      max_connections: 10
+      max_idle_time: 300   # 5 minutes
+      max_lifetime: 3600   # 1 hour
+    replicas:
+      - host: localhost
+        port: 5433
+        role: replica
+        weight: 1
+
+  # Redis Cache
+  cache:
+    type: redis
+    host: localhost
+    port: 6379
+    password: ""
+    options:
+      db: 0
+    pool:
+      min_connections: 2
+      max_connections: 20
+      max_idle_time: 300
+
+  # Kafka Message Queue
+  message_queue:
+    type: kafka
+    host: localhost
+    port: 9092
+    options:
+      group_id: "throome-gateway"
+
+# Routing configuration
+routing:
+  strategy: "round_robin"  # round_robin, weighted, least_connections, ai
+  failover_enabled: true
+  timeout_ms: 5000
+  retry_attempts: 3
+  circuit_breaker:
+    enabled: false
+    failure_threshold: 5
+    reset_timeout: 60  # seconds
+
+# Health check configuration
+health:
+  enabled: true
+  interval: 10   # seconds
+  timeout: 5     # seconds
+  threshold: 3   # consecutive failures before marking unhealthy
+
+# AI optimization configuration
+ai:
+  enabled: false
+  model: "linear_regression"
+  min_data_points: 100
+  update_interval: 300  # seconds
+  features:
+    - "latency"
+    - "load"
+    - "error_rate"
+
+created_at: 2025-01-01T00:00:00Z
+updated_at: 2025-01-01T00:00:00Z
+

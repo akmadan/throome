@@ -1,0 +1,30 @@
+# Throome Gateway Configuration Example
+# Copy this file to throome.yaml and customize for your environment
+
+server:
+  host: "0.0.0.0"
+  port: 9000
+  read_timeout: 30   # seconds
+  write_timeout: 30  # seconds
+
+gateway:
+  clusters_dir: "./clusters"
+  max_connections: 1000
+  connection_timeout: 10  # seconds
+  enable_ai: false
+
+dashboard:
+  enabled: true
+  port: 9001
+  path: "/dashboard"
+
+monitoring:
+  enabled: true
+  metrics_path: "/metrics"
+  collection_interval: 10  # seconds
+
+logging:
+  level: "info"  # debug, info, warn, error
+  development: false
+  output_path: "stdout"
+

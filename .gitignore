@@ -1,0 +1,81 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+*.prof
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+build/
+*.log
+
+# Runtime data
+clusters/*/
+!clusters/.gitkeep
+*.pid
+*.seed
+*.pid.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+
+# Configuration overrides (keep examples)
+config.yaml
+throome.yaml
+!*.example.yaml
+
+# UI build artifacts (for future)
+ui/node_modules/
+ui/dist/
+ui/.next/
+ui/build/
+
+# Documentation build
+docs/_build/
+site/
+
+# Test artifacts
+testdata/output/
+*.db
+*.sqlite
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
