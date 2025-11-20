@@ -1,0 +1,95 @@
+# Ignore files for Docker builds
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+test/
+coverage.txt
+coverage.out
+coverage.html
+*.test
+*.prof
+
+# Documentation
+docs/
+*.md
+!README.md
+LICENSE
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Dependencies
+vendor/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Runtime data
+clusters/
+*.pid
+*.seed
+*.pid.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# UI (not needed for backend)
+ui/node_modules/
+ui/dist/
+ui/.next/
+ui/build/
+
+# Examples
+examples/
+
+# Scripts
+scripts/
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Deployment configs (except the one being used)
+deployments/kubernetes/
+deployments/helm/
+
+# Misc
+Makefile
+CHANGELOG
+ROADMAP.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+PROJECT_SUMMARY.md
+TEST_RESULTS.md
+TESTING.md
+

@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # Throome Gateway
+  throome:
+    image: throome/throome:latest
+    container_name: throome-gateway
+    ports:
+      - "9000:9000"  # Gateway API
+      - "9001:9001"  # Dashboard
+    volumes:
+      - ./clusters:/app/clusters
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - THROOME_PORT=9000
+      - THROOME_CLUSTERS_DIR=/app/clusters
+      - THROOME_LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - throome-network
+
+  # Redis (example backend service)
+  redis:
+    image: redis:7-alpine
+    container_name: throome-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - throome-network
+
+  # PostgreSQL (example backend service)
+  postgres:
+    image: postgres:15-alpine
+    container_name: throome-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=throome
+      - POSTGRES_PASSWORD=throome
+      - POSTGRES_DB=throome
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U throome"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - throome-network
+
+  # Kafka (example backend service)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: throome-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - throome-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: throome-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - throome-network
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  throome-network:
+    driver: bridge
+
