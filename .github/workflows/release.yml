@@ -102,8 +102,8 @@ jobs:
             
             ### Docker
             ```bash
-            docker pull throome/throome:${{ steps.version.outputs.version }}
-            docker run -p 9000:9000 throome/throome:${{ steps.version.outputs.version }}
+            docker pull akshitmadan/throome:${{ steps.version.outputs.version }}
+            docker run -p 9000:9000 akshitmadan/throome:${{ steps.version.outputs.version }}
             ```
             
             ### Binary
@@ -111,7 +111,7 @@ jobs:
             
             ### From Source
             ```bash
-            git clone https://github.com/akshitmadan/throome.git
+            git clone https://github.com/akmadan/throome.git
             cd throome
             git checkout ${{ steps.version.outputs.version }}
             make install
@@ -122,8 +122,8 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
             
             ## Docker Images
-            - `throome/throome:${{ steps.version.outputs.version }}`
-            - `throome/throome:latest`
+            - `akshitmadan/throome:${{ steps.version.outputs.version }}`
+            - `akshitmadan/throome:latest`
             
             ## Checksums
             See assets below for SHA256 checksums.
