@@ -165,7 +165,6 @@ func main() {
 | RabbitMQ     | 🚧     | Coming soon    |
 | Elasticsearch| 📋     | Planned        |
 
----
 
 ## 🛠️ Development
 
