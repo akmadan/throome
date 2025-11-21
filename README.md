@@ -4,10 +4,10 @@
 
 Throome provides a single gateway layer to access multiple infrastructure components (Redis, PostgreSQL, Kafka, etc.) via one cluster ID – eliminating direct integration complexity.
 
-[![Tests](https://github.com/akshitmadan/throome/workflows/Tests/badge.svg)](https://github.com/akshitmadan/throome/actions/workflows/test.yml)
-[![Docker Build](https://github.com/akshitmadan/throome/workflows/Docker%20Build%20%26%20Push/badge.svg)](https://github.com/akshitmadan/throome/actions/workflows/docker.yml)
+[![Tests](https://github.com/akmadan/throome/workflows/Tests/badge.svg)](https://github.com/akmadan/throome/actions/workflows/test.yml)
+[![Docker Build](https://github.com/akmadan/throome/workflows/Docker%20Build%20%26%20Push/badge.svg)](https://github.com/akmadan/throome/actions/workflows/docker.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/throome/throome)](https://hub.docker.com/r/throome/throome)
+[![Docker Pulls](https://img.shields.io/docker/pulls/akshitmadan/throome)](https://hub.docker.com/r/akshitmadan/throome)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
@@ -32,21 +32,21 @@ Throome provides a single gateway layer to access multiple infrastructure compon
 **Option 1: Docker (Recommended)**
 ```bash
 # Run with Docker
-docker pull throome/throome:latest
-docker run -p 9000:9000 throome/throome:latest
+docker pull akshitmadan/throome:latest
+docker run -p 9000:9000 akshitmadan/throome:latest
 
 # Or with docker-compose (includes Redis, PostgreSQL, Kafka)
-curl -o docker-compose.yml https://raw.githubusercontent.com/akshitmadan/throome/main/deployments/docker/docker-compose.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/akmadan/throome/main/deployments/docker/docker-compose.yml
 docker-compose up -d
 ```
 
 **Option 2: Pre-built Binaries**
 ```bash
 # Download from GitHub Releases
-# https://github.com/akshitmadan/throome/releases
+# https://github.com/akmadan/throome/releases
 
 # Example for Linux
-wget https://github.com/akshitmadan/throome/releases/latest/download/throome-linux-amd64.tar.gz
+wget https://github.com/akmadan/throome/releases/latest/download/throome-linux-amd64.tar.gz
 tar xzf throome-linux-amd64.tar.gz
 ./throome-linux-amd64
 ```
@@ -54,7 +54,7 @@ tar xzf throome-linux-amd64.tar.gz
 **Option 3: Build from Source**
 ```bash
 # Clone the repository
-git clone https://github.com/akshitmadan/throome.git
+git clone https://github.com/akmadan/throome.git
 cd throome
 
 # Build binaries

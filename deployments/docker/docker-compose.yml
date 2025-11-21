@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Throome Gateway
   throome:
-    image: throome/throome:latest
+    image: akshitmadan/throome:latest
     container_name: throome-gateway
     ports:
       - "9000:9000"  # Gateway API

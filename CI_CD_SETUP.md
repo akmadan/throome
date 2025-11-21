@@ -20,7 +20,7 @@ Create a DockerHub account and repository:
 
 1. Go to [hub.docker.com](https://hub.docker.com)
 2. Create account or sign in
-3. Create a new repository: `throome/throome`
+3. Create a new repository: `akshitmadan/throome`
 4. Generate access token:
    - Account Settings → Security → New Access Token
    - Name: `github-actions`
