@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/akshitmadan/throome/pkg/adapters"
-	"github.com/akshitmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/adapters"
+	"github.com/akmadan/throome/pkg/cluster"
 )
 
 // PostgresAdapter implements the DatabaseAdapter interface for PostgreSQL

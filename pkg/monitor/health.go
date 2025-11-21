@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/akshitmadan/throome/internal/logger"
-	"github.com/akshitmadan/throome/pkg/adapters"
+	"github.com/akmadan/throome/internal/logger"
+	"github.com/akmadan/throome/pkg/adapters"
 	"go.uber.org/zap"
 )
 

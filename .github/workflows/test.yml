@@ -74,17 +74,75 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Start Kafka (Docker)
+        run: |
+          docker network create throome-test-network || true
+          
+          # Start Zookeeper
+          docker run -d \
+            --name zookeeper \
+            --network throome-test-network \
+            -p 2181:2181 \
+            -e ZOOKEEPER_CLIENT_PORT=2181 \
+            -e ZOOKEEPER_TICK_TIME=2000 \
+            confluentinc/cp-zookeeper:7.5.0
+          
+          # Wait for Zookeeper
+          sleep 10
+          
+          # Start Kafka
+          docker run -d \
+            --name kafka \
+            --network throome-test-network \
+            -p 9092:9092 \
+            -e KAFKA_BROKER_ID=1 \
+            -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+            -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
+            -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT \
+            -e KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT \
+            -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+            -e KAFKA_AUTO_CREATE_TOPICS_ENABLE=true \
+            confluentinc/cp-kafka:7.5.0
+          
+          # Wait for Kafka to be ready
+          echo "Waiting for Kafka to be ready..."
+          for i in {1..30}; do
+            if docker exec kafka kafka-topics --list --bootstrap-server localhost:9092 2>/dev/null; then
+              echo "Kafka is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
       - name: Wait for services
         run: |
           echo "Waiting for Redis..."
           timeout 30 bash -c 'until nc -z localhost 6379; do sleep 1; done'
+          echo "✓ Redis ready"
+          
           echo "Waiting for PostgreSQL..."
           timeout 30 bash -c 'until nc -z localhost 5432; do sleep 1; done'
+          echo "✓ PostgreSQL ready"
+          
+          echo "Waiting for Kafka..."
+          timeout 60 bash -c 'until nc -z localhost 9092; do sleep 1; done'
+          echo "✓ Kafka ready"
+          
+          # Additional Kafka readiness check
+          sleep 5
 
       - name: Run integration tests
         env:
           INTEGRATION_TESTS: true
         run: go test -v -race ./test/integration/...
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop kafka zookeeper || true
+          docker rm kafka zookeeper || true
+          docker network rm throome-test-network || true
 
   # Code coverage
   coverage:

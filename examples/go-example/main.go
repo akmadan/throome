@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/akshitmadan/throome/pkg/sdk"
+	"github.com/akmadan/throome/pkg/sdk"
 )
 
 func main() {

@@ -70,7 +70,7 @@ git clone https://github.com/YOUR_USERNAME/throome.git
 cd throome
 
 # Add upstream remote
-git remote add upstream https://github.com/akshitmadan/throome.git
+git remote add upstream https://github.com/akmadan/throome.git
 
 # Install dependencies
 make deps
@@ -271,7 +271,7 @@ By contributing to Throome, you agree that your contributions will be licensed u
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/akshitmadan/throome/discussions)
+- Open a [GitHub Discussion](https://github.com/akmadan/throome/discussions)
 - Comment on an existing issue
 - Reach out to maintainers
 

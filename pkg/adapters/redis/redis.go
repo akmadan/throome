@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/akshitmadan/throome/pkg/adapters"
-	"github.com/akshitmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/adapters"
+	"github.com/akmadan/throome/pkg/cluster"
 )
 
 // RedisAdapter implements the CacheAdapter interface for Redis

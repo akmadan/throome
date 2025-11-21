@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/akshitmadan/throome/internal/config"
-	"github.com/akshitmadan/throome/internal/logger"
+	"github.com/akmadan/throome/internal/config"
+	"github.com/akmadan/throome/internal/logger"
 	"go.uber.org/zap"
 )
 

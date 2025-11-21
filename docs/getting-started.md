@@ -14,7 +14,7 @@ This guide will help you get Throome up and running in minutes.
 
 ```bash
 # Clone the repository
-git clone https://github.com/akshitmadan/throome.git
+git clone https://github.com/akmadan/throome.git
 cd throome
 
 # Build binaries
@@ -28,13 +28,13 @@ ls bin/
 ### Option 2: Install with Go
 
 ```bash
-go install github.com/akshitmadan/throome/cmd/throome@latest
-go install github.com/akshitmadan/throome/cmd/throome-cli@latest
+go install github.com/akmadan/throome/cmd/throome@latest
+go install github.com/akmadan/throome/cmd/throome-cli@latest
 ```
 
 ### Option 3: Download Pre-built Binaries
 
-Download from [GitHub Releases](https://github.com/akshitmadan/throome/releases)
+Download from [GitHub Releases](https://github.com/akmadan/throome/releases)
 
 ## Quick Start
 
@@ -129,7 +129,7 @@ go mod init my-app
 Add Throome SDK:
 
 ```bash
-go get github.com/akshitmadan/throome
+go get github.com/akmadan/throome
 ```
 
 Create `main.go`:
@@ -142,7 +142,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/akshitmadan/throome/pkg/sdk"
+    "github.com/akmadan/throome/pkg/sdk"
 )
 
 func main() {
@@ -264,7 +264,7 @@ curl http://localhost:9000/metrics
 
 ## Getting Help
 
-- [GitHub Issues](https://github.com/akshitmadan/throome/issues)
-- [GitHub Discussions](https://github.com/akshitmadan/throome/discussions)
+- [GitHub Issues](https://github.com/akmadan/throome/issues)
+- [GitHub Discussions](https://github.com/akmadan/throome/discussions)
 - [Documentation](README.md)
 

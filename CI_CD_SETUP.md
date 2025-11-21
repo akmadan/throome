@@ -57,7 +57,7 @@ Add these secrets to your GitHub repository:
 
 **Status Badge:**
 ```markdown
-![Tests](https://github.com/akshitmadan/throome/actions/workflows/test.yml/badge.svg)
+![Tests](https://github.com/akmadan/throome/actions/workflows/test.yml/badge.svg)
 ```
 
 ### 2. Docker Workflow (`.github/workflows/docker.yml`)
@@ -192,11 +192,11 @@ Add these badges to your README:
 ```markdown
 # Throome
 
-![Tests](https://github.com/akshitmadan/throome/actions/workflows/test.yml/badge.svg)
-![Docker](https://github.com/akshitmadan/throome/actions/workflows/docker.yml/badge.svg)
-![Release](https://github.com/akshitmadan/throome/actions/workflows/release.yml/badge.svg)
+![Tests](https://github.com/akmadan/throome/actions/workflows/test.yml/badge.svg)
+![Docker](https://github.com/akmadan/throome/actions/workflows/docker.yml/badge.svg)
+![Release](https://github.com/akmadan/throome/actions/workflows/release.yml/badge.svg)
 [![codecov](https://codecov.io/gh/akshitmadan/throome/branch/main/graph/badge.svg)](https://codecov.io/gh/akshitmadan/throome)
-[![Go Report Card](https://goreportcard.com/badge/github.com/akshitmadan/throome)](https://goreportcard.com/report/github.com/akshitmadan/throome)
+[![Go Report Card](https://goreportcard.com/badge/github.com/akmadan/throome)](https://goreportcard.com/report/github.com/akmadan/throome)
 [![Docker Pulls](https://img.shields.io/docker/pulls/throome/throome)](https://hub.docker.com/r/throome/throome)
 [![License](https://img.shields.io/github/license/akshitmadan/throome)](LICENSE)
 ```
@@ -393,7 +393,7 @@ git tag -a v1.0.0 -m "Release v1.0.0"
 Issues with CI/CD?
 1. Check workflow logs in GitHub Actions
 2. Review this guide
-3. Open an issue: [github.com/akshitmadan/throome/issues](https://github.com/akshitmadan/throome/issues)
+3. Open an issue: [github.com/akmadan/throome/issues](https://github.com/akmadan/throome/issues)
 
 ---
 

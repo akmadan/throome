@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/akshitmadan/throome/internal/logger"
-	"github.com/akshitmadan/throome/internal/utils"
-	"github.com/akshitmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/internal/logger"
+	"github.com/akmadan/throome/internal/utils"
+	"github.com/akmadan/throome/pkg/cluster"
 	"go.uber.org/zap"
 )
 

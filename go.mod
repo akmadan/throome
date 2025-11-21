@@ -1,4 +1,4 @@
-module github.com/akshitmadan/throome
+module github.com/akmadan/throome
 
 go 1.21
 

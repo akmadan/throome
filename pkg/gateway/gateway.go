@@ -6,14 +6,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/akshitmadan/throome/internal/logger"
-	"github.com/akshitmadan/throome/pkg/adapters"
-	"github.com/akshitmadan/throome/pkg/adapters/kafka"
-	"github.com/akshitmadan/throome/pkg/adapters/postgres"
-	"github.com/akshitmadan/throome/pkg/adapters/redis"
-	"github.com/akshitmadan/throome/pkg/cluster"
-	"github.com/akshitmadan/throome/pkg/monitor"
-	"github.com/akshitmadan/throome/pkg/router"
+	"github.com/akmadan/throome/internal/logger"
+	"github.com/akmadan/throome/pkg/adapters"
+	"github.com/akmadan/throome/pkg/adapters/kafka"
+	"github.com/akmadan/throome/pkg/adapters/postgres"
+	"github.com/akmadan/throome/pkg/adapters/redis"
+	"github.com/akmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/monitor"
+	"github.com/akmadan/throome/pkg/router"
 	"go.uber.org/zap"
 )
 

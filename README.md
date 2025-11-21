@@ -94,7 +94,7 @@ package main
 
 import (
     "context"
-    "github.com/akshitmadan/throome/pkg/sdk"
+    "github.com/akmadan/throome/pkg/sdk"
 )
 
 func main() {
@@ -319,8 +319,8 @@ See [ROADMAP.md](ROADMAP.md) for detailed plans.
 
 ## 💬 Community
 
-- **Issues**: [GitHub Issues](https://github.com/akshitmadan/throome/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/akshitmadan/throome/discussions)
+- **Issues**: [GitHub Issues](https://github.com/akmadan/throome/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/akmadan/throome/discussions)
 - **Twitter**: [@throome_dev](https://twitter.com/throome_dev)
 
 ---
@@ -338,7 +338,7 @@ Built with ❤️ using:
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/akshitmadan">Akshit Madan</a>
+  Made with ❤️ by <a href="https://github.com/akmadan">Akshit Madan</a>
 </p>
 
 <p align="center">

@@ -1,8 +1,8 @@
-module github.com/akshitmadan/throome/examples/go-example
+module github.com/akmadan/throome/examples/go-example
 
 go 1.21
 
-require github.com/akshitmadan/throome v0.1.0
+require github.com/akmadan/throome v0.1.0
 
-replace github.com/akshitmadan/throome => ../..
+replace github.com/akmadan/throome => ../..
 

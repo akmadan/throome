@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/akshitmadan/throome/pkg/adapters"
-	"github.com/akshitmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/adapters"
+	"github.com/akmadan/throome/pkg/cluster"
 )
 
 // Router handles routing requests to appropriate adapters

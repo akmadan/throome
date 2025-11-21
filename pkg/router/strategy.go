@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/akshitmadan/throome/pkg/adapters"
+	"github.com/akmadan/throome/pkg/adapters"
 )
 
 // Strategy defines the interface for routing strategies

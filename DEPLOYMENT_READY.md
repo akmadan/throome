@@ -133,12 +133,12 @@ docker-compose logs -f throome
 
 ```bash
 # Linux AMD64
-wget https://github.com/akshitmadan/throome/releases/latest/download/throome-linux-amd64.tar.gz
+wget https://github.com/akmadan/throome/releases/latest/download/throome-linux-amd64.tar.gz
 tar xzf throome-linux-amd64.tar.gz
 ./throome-linux-amd64
 
 # macOS ARM64 (M1/M2)
-wget https://github.com/akshitmadan/throome/releases/latest/download/throome-darwin-arm64.tar.gz
+wget https://github.com/akmadan/throome/releases/latest/download/throome-darwin-arm64.tar.gz
 tar xzf throome-darwin-arm64.tar.gz
 ./throome-darwin-arm64
 ```
@@ -182,7 +182,7 @@ git add .
 git commit -m "Add CI/CD pipeline"
 
 # Add remote and push
-git remote add origin https://github.com/akshitmadan/throome.git
+git remote add origin https://github.com/akmadan/throome.git
 git push -u origin main
 ```
 

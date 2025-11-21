@@ -207,7 +207,7 @@ docker-compose up -d
 
 ```bash
 # Download from GitHub Releases
-wget https://github.com/akshitmadan/throome/releases/download/v0.1.0/throome-linux-amd64.tar.gz
+wget https://github.com/akmadan/throome/releases/download/v0.1.0/throome-linux-amd64.tar.gz
 tar xzf throome-linux-amd64.tar.gz
 ./throome-linux-amd64 --version
 
@@ -219,7 +219,7 @@ curl -sSL https://get.throome.dev | bash
 
 ```bash
 # Clone and build
-git clone https://github.com/akshitmadan/throome.git
+git clone https://github.com/akmadan/throome.git
 cd throome
 make build
 
@@ -339,12 +339,12 @@ PLATFORMS="linux/amd64 linux/arm64 darwin/amd64"
 Add to README.md:
 
 ```markdown
-![Tests](https://github.com/akshitmadan/throome/workflows/Tests/badge.svg)
-![Docker](https://github.com/akshitmadan/throome/workflows/Docker%20Build%20%26%20Push/badge.svg)
+![Tests](https://github.com/akmadan/throome/workflows/Tests/badge.svg)
+![Docker](https://github.com/akmadan/throome/workflows/Docker%20Build%20%26%20Push/badge.svg)
 [![codecov](https://codecov.io/gh/akshitmadan/throome/branch/main/graph/badge.svg)](https://codecov.io/gh/akshitmadan/throome)
-[![Go Report Card](https://goreportcard.com/badge/github.com/akshitmadan/throome)](https://goreportcard.com/report/github.com/akshitmadan/throome)
+[![Go Report Card](https://goreportcard.com/badge/github.com/akmadan/throome)](https://goreportcard.com/report/github.com/akmadan/throome)
 [![Docker Pulls](https://img.shields.io/docker/pulls/throome/throome)](https://hub.docker.com/r/throome/throome)
-[![GitHub release](https://img.shields.io/github/release/akshitmadan/throome.svg)](https://github.com/akshitmadan/throome/releases)
+[![GitHub release](https://img.shields.io/github/release/akshitmadan/throome.svg)](https://github.com/akmadan/throome/releases)
 ```
 
 ### Monitoring Tools

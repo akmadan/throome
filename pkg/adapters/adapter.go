@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/akshitmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/cluster"
 )
 
 // Adapter is the base interface for all infrastructure adapters

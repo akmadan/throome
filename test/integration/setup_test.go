@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/akshitmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/cluster"
 )
 
 // TestMain sets up and tears down integration test environment

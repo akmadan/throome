@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/akshitmadan/throome/internal/config"
-	"github.com/akshitmadan/throome/internal/logger"
-	"github.com/akshitmadan/throome/pkg/gateway"
+	"github.com/akmadan/throome/internal/config"
+	"github.com/akmadan/throome/internal/logger"
+	"github.com/akmadan/throome/pkg/gateway"
 	"go.uber.org/zap"
 )
 
