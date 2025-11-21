@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	kafkaAdapter "github.com/akmadan/throome/pkg/adapters/kafka"
+	postgresAdapter "github.com/akmadan/throome/pkg/adapters/postgres"
+	redisAdapter "github.com/akmadan/throome/pkg/adapters/redis"
 	"github.com/akmadan/throome/pkg/cluster"
 )
 
@@ -154,8 +157,11 @@ func getRedisAdapter(config cluster.ServiceConfig) (interface {
 	Disconnect(context.Context) error
 	Ping(context.Context) error
 }, error) {
-	// Import and create Redis adapter
-	return nil, fmt.Errorf("not implemented")
+	adapter, err := redisAdapter.NewRedisAdapter(config)
+	if err != nil {
+		return nil, err
+	}
+	return adapter, nil
 }
 
 func getPostgresAdapter(config cluster.ServiceConfig) (interface {
@@ -163,8 +169,11 @@ func getPostgresAdapter(config cluster.ServiceConfig) (interface {
 	Disconnect(context.Context) error
 	Ping(context.Context) error
 }, error) {
-	// Import and create Postgres adapter
-	return nil, fmt.Errorf("not implemented")
+	adapter, err := postgresAdapter.NewPostgresAdapter(config)
+	if err != nil {
+		return nil, err
+	}
+	return adapter, nil
 }
 
 func getKafkaAdapter(config cluster.ServiceConfig) (interface {
@@ -172,6 +181,9 @@ func getKafkaAdapter(config cluster.ServiceConfig) (interface {
 	Disconnect(context.Context) error
 	Ping(context.Context) error
 }, error) {
-	// Import and create Kafka adapter
-	return nil, fmt.Errorf("not implemented")
+	adapter, err := kafkaAdapter.NewKafkaAdapter(config)
+	if err != nil {
+		return nil, err
+	}
+	return adapter, nil
 }
