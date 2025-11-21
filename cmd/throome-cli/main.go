@@ -193,7 +193,7 @@ var deleteClusterCmd = &cobra.Command{
 		// Confirm deletion
 		fmt.Printf("Are you sure you want to delete cluster '%s'? (yes/no): ", clusterID)
 		var confirm string
-		_, _ = fmt.Scanln(&confirm)
+		_, _ = fmt.Scanln(&confirm) //nolint:errcheck // User input errors are handled by empty string default
 
 		if confirm != "yes" {
 			fmt.Println("Deletion cancelled.")
@@ -239,7 +239,7 @@ func init() {
 
 	// Create cluster flags
 	createClusterCmd.Flags().StringVar(&clusterName, "name", "", "Cluster name (required)")
-	_ = createClusterCmd.MarkFlagRequired("name")
+	_ = createClusterCmd.MarkFlagRequired("name") //nolint:errcheck // Flag is defined in same function, error impossible
 
 	// Add commands
 	rootCmd.AddCommand(versionCmd)

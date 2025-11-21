@@ -100,7 +100,7 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body, res
 
 	if resp.StatusCode >= 400 {
 		var errResp map[string]interface{}
-		_ = json.NewDecoder(resp.Body).Decode(&errResp)
+		_ = json.NewDecoder(resp.Body).Decode(&errResp) //nolint:errcheck // Error response decode is best-effort
 		return fmt.Errorf("request failed: %s - %v", resp.Status, errResp)
 	}
 
