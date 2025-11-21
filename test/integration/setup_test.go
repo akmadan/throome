@@ -105,7 +105,7 @@ func checkPostgres() error {
 		Port:     5432,
 		Username: "test",
 		Password: "test",
-		Database: "throome_test",
+		Database: "test",
 	}
 
 	adapter, err := getPostgresAdapter(config)
