@@ -15,7 +15,8 @@ export interface Cluster {
   id: string
   name: string
   created_at: string
-  services: Service[]
+  services?: Service[]
+  config?: any
 }
 
 export interface Service {
@@ -23,7 +24,10 @@ export interface Service {
   type: string
   host: string
   port: number
-  healthy: boolean
+  healthy?: boolean
+  username?: string
+  password?: string
+  database?: string
 }
 
 // Health check
@@ -43,7 +47,10 @@ export const getCluster = async (id: string): Promise<Cluster> => {
   return response.data
 }
 
-export const createCluster = async (data: Partial<Cluster>): Promise<Cluster> => {
+export const createCluster = async (data: {
+  name: string
+  config: any
+}): Promise<Cluster> => {
   const response = await api.post<Cluster>('/clusters', data)
   return response.data
 }

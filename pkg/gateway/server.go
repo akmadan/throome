@@ -12,6 +12,7 @@ import (
 
 	"github.com/akmadan/throome/internal/config"
 	"github.com/akmadan/throome/internal/logger"
+	"github.com/akmadan/throome/pkg/cluster"
 	"go.uber.org/zap"
 )
 
@@ -112,16 +113,43 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListClusters(w http.ResponseWriter, r *http.Request) {
-	clusters, err := s.gateway.ListClusters()
+	clusterIDs, err := s.gateway.ListClusters()
 	if err != nil {
 		s.errorResponse(w, http.StatusInternalServerError, "Failed to list clusters", err)
 		return
 	}
 
-	s.jsonResponse(w, http.StatusOK, map[string]interface{}{
-		"clusters": clusters,
-		"count":    len(clusters),
-	})
+	// Get detailed info for each cluster
+	clusters := make([]map[string]interface{}, 0)
+	for _, clusterID := range clusterIDs {
+		config, err := s.gateway.GetClusterConfig(clusterID)
+		if err != nil {
+			logger.Error("Failed to get cluster config", zap.String("cluster_id", clusterID), zap.Error(err))
+			continue
+		}
+
+		// Get service info
+		services := make([]map[string]interface{}, 0)
+		for serviceName, serviceConfig := range config.Services {
+			services = append(services, map[string]interface{}{
+				"name":     serviceName,
+				"type":     serviceConfig.Type,
+				"host":     serviceConfig.Host,
+				"port":     serviceConfig.Port,
+				"username": serviceConfig.Username,
+				"database": serviceConfig.Database,
+			})
+		}
+
+		clusters = append(clusters, map[string]interface{}{
+			"id":         clusterID,
+			"name":       config.Name,
+			"created_at": time.Now().Format(time.RFC3339), // TODO: Store actual creation time
+			"services":   services,
+		})
+	}
+
+	s.jsonResponse(w, http.StatusOK, clusters)
 }
 
 func (s *Server) handleCreateCluster(w http.ResponseWriter, r *http.Request) {
@@ -135,9 +163,55 @@ func (s *Server) handleCreateCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Convert req.Config to cluster.Config
-	// For now, return not implemented
-	s.errorResponse(w, http.StatusNotImplemented, "Cluster creation via API not yet implemented", nil)
+	// Validate request
+	if req.Name == "" {
+		s.errorResponse(w, http.StatusBadRequest, "Cluster name is required", nil)
+		return
+	}
+
+	if req.Config == nil || req.Config["services"] == nil {
+		s.errorResponse(w, http.StatusBadRequest, "Cluster services configuration is required", nil)
+		return
+	}
+
+	// Convert JSON config to cluster.Config
+	clusterConfig, err := s.convertJSONToClusterConfig(req.Name, req.Config)
+	if err != nil {
+		s.errorResponse(w, http.StatusBadRequest, "Invalid cluster configuration", err)
+		return
+	}
+
+	// Create cluster
+	clusterID, err := s.gateway.CreateCluster(r.Context(), req.Name, clusterConfig)
+	if err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to create cluster", err)
+		return
+	}
+
+	// Get the created cluster info
+	config, _ := s.gateway.GetClusterConfig(clusterID)
+
+	services := make([]map[string]interface{}, 0)
+	if config != nil {
+		for serviceName, serviceConfig := range config.Services {
+			services = append(services, map[string]interface{}{
+				"name": serviceName,
+				"type": serviceConfig.Type,
+				"host": serviceConfig.Host,
+				"port": serviceConfig.Port,
+			})
+		}
+	}
+
+	response := map[string]interface{}{
+		"id":         clusterID,
+		"name":       req.Name,
+		"created_at": time.Now().Format(time.RFC3339),
+		"services":   services,
+		"message":    "Cluster created successfully",
+	}
+
+	s.jsonResponse(w, http.StatusCreated, response)
 }
 
 func (s *Server) handleGetCluster(w http.ResponseWriter, r *http.Request) {
@@ -251,4 +325,65 @@ func (s *Server) errorResponse(w http.ResponseWriter, status int, message string
 	}
 
 	s.jsonResponse(w, status, response)
+}
+
+// convertJSONToClusterConfig converts JSON configuration to cluster.Config
+func (s *Server) convertJSONToClusterConfig(name string, jsonConfig map[string]interface{}) (*cluster.Config, error) {
+	config := &cluster.Config{
+		Name:     name,
+		Services: make(map[string]cluster.ServiceConfig),
+	}
+
+	// Parse services
+	servicesMap, ok := jsonConfig["services"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid services configuration")
+	}
+
+	for serviceName, serviceData := range servicesMap {
+		serviceMap, ok := serviceData.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid service configuration for %s", serviceName)
+		}
+
+		serviceConfig := cluster.ServiceConfig{}
+
+		// Type
+		if serviceType, ok := serviceMap["type"].(string); ok {
+			serviceConfig.Type = serviceType
+		} else {
+			return nil, fmt.Errorf("service %s: type is required", serviceName)
+		}
+
+		// Host
+		if host, ok := serviceMap["host"].(string); ok {
+			serviceConfig.Host = host
+		} else {
+			return nil, fmt.Errorf("service %s: host is required", serviceName)
+		}
+
+		// Port
+		if port, ok := serviceMap["port"].(float64); ok {
+			serviceConfig.Port = int(port)
+		} else {
+			return nil, fmt.Errorf("service %s: port is required", serviceName)
+		}
+
+		// Optional fields
+		if username, ok := serviceMap["username"].(string); ok {
+			serviceConfig.Username = username
+		}
+
+		if password, ok := serviceMap["password"].(string); ok {
+			serviceConfig.Password = password
+		}
+
+		if database, ok := serviceMap["database"].(string); ok {
+			serviceConfig.Database = database
+		}
+
+		config.Services[serviceName] = serviceConfig
+	}
+
+	return config, nil
 }
