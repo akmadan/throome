@@ -20,7 +20,7 @@ interface ServiceNode {
 
 const SERVICE_TYPES = [
   { type: 'redis', label: 'Redis', icon: Database, color: 'red', defaultPort: 6379 },
-  { type: 'postgres', label: 'PostgreSQL', icon: Server, color: 'blue', defaultPort: 5432 },
+  { type: 'postgres', label: 'PostgreSQL', icon: Server, color: 'blue', defaultPort: 5433 }, // Use 5433 to avoid conflicts with local PostgreSQL
   { type: 'kafka', label: 'Kafka', icon: MessageSquare, color: 'purple', defaultPort: 9092 },
 ]
 

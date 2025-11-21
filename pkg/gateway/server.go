@@ -231,17 +231,29 @@ func (s *Server) handleCreateCluster(w http.ResponseWriter, r *http.Request) {
 			// Update config with container ID
 			svc := clusterConfig.Services[serviceName]
 			svc.ContainerID = container.ContainerID
-			svc.Host = "localhost" // Override to localhost since we provisioned it
+			// Use host.docker.internal to connect from inside Docker container to host services
+			// This special DNS name resolves to the host machine's IP
+			svc.Host = "host.docker.internal"
 			clusterConfig.Services[serviceName] = svc
 
 			logger.Info("Service provisioned",
 				zap.String("service", serviceName),
 				zap.String("container_id", container.ContainerID[:12]),
 			)
-		}
 
-		// Wait a moment for containers to be fully ready
-		time.Sleep(2 * time.Second)
+			// Wait for container to be healthy before proceeding
+			if err := s.provisioner.WaitForHealthy(r.Context(), container.ContainerID, 30*time.Second); err != nil {
+				// Cleanup all provisioned containers on failure
+				for _, sc := range clusterConfig.Services {
+					if sc.ContainerID != "" {
+						_ = s.provisioner.RemoveService(r.Context(), sc.ContainerID)
+					}
+				}
+				s.errorResponse(w, http.StatusInternalServerError,
+					fmt.Sprintf("Service %s failed to become healthy", serviceName), err)
+				return
+			}
+		}
 	}
 
 	// Create cluster

@@ -107,15 +107,27 @@ func (p *DockerProvisioner) ProvisionService(ctx context.Context, serviceName st
 	logger.Info("Pulling Docker image", zap.String("image", imageName))
 	reader, err := p.client.ImagePull(ctx, imageName, image.PullOptions{})
 	if err != nil {
+		logger.Error("Failed to pull Docker image",
+			zap.String("image", imageName),
+			zap.Error(err))
 		return nil, fmt.Errorf("failed to pull image %s: %w", imageName, err)
 	}
 	defer reader.Close()
-	// Discard pull output
-	_, _ = io.Copy(io.Discard, reader)
+
+	// Wait for pull to complete
+	logger.Info("Waiting for image pull to complete", zap.String("image", imageName))
+	_, err = io.Copy(io.Discard, reader)
+	if err != nil {
+		logger.Error("Failed to complete image pull",
+			zap.String("image", imageName),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to complete image pull for %s: %w", imageName, err)
+	}
+	logger.Info("Image pulled successfully", zap.String("image", imageName))
 
 	// Create container configuration
 	containerName := fmt.Sprintf("throome-%s", serviceName)
-	
+
 	// Port binding
 	exposedPorts := nat.PortSet{
 		nat.Port(fmt.Sprintf("%d/tcp", config.Port)): struct{}{},
@@ -130,6 +142,7 @@ func (p *DockerProvisioner) ProvisionService(ctx context.Context, serviceName st
 	}
 
 	// Create container
+	logger.Info("Creating container", zap.String("name", containerName))
 	resp, err := p.client.ContainerCreate(ctx,
 		&container.Config{
 			Image:        imageName,
@@ -153,11 +166,19 @@ func (p *DockerProvisioner) ProvisionService(ctx context.Context, serviceName st
 		containerName,
 	)
 	if err != nil {
+		logger.Error("Failed to create container",
+			zap.String("name", containerName),
+			zap.Error(err))
 		return nil, fmt.Errorf("failed to create container: %w", err)
 	}
+	logger.Info("Container created", zap.String("container_id", resp.ID[:12]))
 
 	// Start container
+	logger.Info("Starting container", zap.String("container_id", resp.ID[:12]))
 	if err := p.client.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
+		logger.Error("Failed to start container",
+			zap.String("container_id", resp.ID[:12]),
+			zap.Error(err))
 		return nil, fmt.Errorf("failed to start container: %w", err)
 	}
 
@@ -192,7 +213,7 @@ func (p *DockerProvisioner) RestartService(ctx context.Context, containerID stri
 func (p *DockerProvisioner) RemoveService(ctx context.Context, containerID string) error {
 	// Stop first
 	_ = p.StopService(ctx, containerID)
-	
+
 	// Remove
 	return p.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
 		Force: true,
@@ -206,6 +227,57 @@ func (p *DockerProvisioner) GetContainerStatus(ctx context.Context, containerID 
 		return "", err
 	}
 	return inspect.State.Status, nil
+}
+
+// WaitForHealthy waits for a container to become healthy
+func (p *DockerProvisioner) WaitForHealthy(ctx context.Context, containerID string, timeout time.Duration) error {
+	logger.Info("Waiting for container to be healthy",
+		zap.String("container_id", containerID[:12]),
+		zap.Duration("timeout", timeout))
+
+	deadline := time.Now().Add(timeout)
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			if time.Now().After(deadline) {
+				return fmt.Errorf("timeout waiting for container to be healthy")
+			}
+
+			inspect, err := p.client.ContainerInspect(ctx, containerID)
+			if err != nil {
+				return fmt.Errorf("failed to inspect container: %w", err)
+			}
+
+			// Check if container is running
+			if !inspect.State.Running {
+				return fmt.Errorf("container stopped unexpectedly")
+			}
+
+			// If no health check defined, just wait a bit and assume ready
+			if inspect.State.Health == nil {
+				logger.Info("No health check defined, waiting 3 seconds",
+					zap.String("container_id", containerID[:12]))
+				time.Sleep(3 * time.Second)
+				return nil
+			}
+
+			// Check health status
+			if inspect.State.Health.Status == "healthy" {
+				logger.Info("Container is healthy",
+					zap.String("container_id", containerID[:12]))
+				return nil
+			}
+
+			logger.Info("Container health check in progress",
+				zap.String("container_id", containerID[:12]),
+				zap.String("status", inspect.State.Health.Status))
+		}
+	}
 }
 
 // Close closes the Docker client
@@ -234,4 +306,3 @@ func getInternalPort(serviceType string) int {
 		return 8080
 	}
 }
-

@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api/v1',
-  timeout: 10000,
+  timeout: 120000, // 2 minutes - enough time for Docker image pulls
 })
 
 export interface HealthResponse {
