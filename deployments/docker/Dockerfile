@@ -14,7 +14,7 @@ COPY ui/ ./
 RUN npm run build
 
 # Stage 2: Build Go Binary
-FROM golang:1.21-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git make ca-certificates tzdata
