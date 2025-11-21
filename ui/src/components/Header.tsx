@@ -18,7 +18,7 @@ export default function Header() {
           <input
             type="text"
             placeholder="Search clusters, services..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5050] dark:text-white"
           />
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function Header() {
         </button>
 
         {/* User Avatar */}
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-br from-[#FF5050] to-[#ff7070] rounded-full flex items-center justify-center">
           <span className="text-xs font-medium text-white">AM</span>
         </div>
       </div>

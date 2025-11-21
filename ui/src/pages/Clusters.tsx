@@ -50,7 +50,7 @@ export default function Clusters() {
         </div>
         <button
           onClick={() => navigate('/clusters/create')}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 bg-[#FF5050] text-white rounded-lg hover:bg-[#ed1515] transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span>Create Cluster</span>
@@ -59,7 +59,7 @@ export default function Clusters() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-[#FF5050] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : clusters.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12">
@@ -71,7 +71,7 @@ export default function Clusters() {
             </p>
             <button
               onClick={() => navigate('/clusters/create')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-[#FF5050] text-white rounded-lg hover:bg-[#ed1515] transition-colors"
             >
               Create Your First Cluster
             </button>
@@ -86,8 +86,8 @@ export default function Clusters() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                    <Server className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                    <Server className="w-6 h-6 text-[#FF5050] dark:text-[#FF5050]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -116,7 +116,10 @@ export default function Clusters() {
               </div>
 
               <div className="flex space-x-2">
-                <button className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+                <button 
+                  onClick={() => navigate(`/clusters/${cluster.id}`)}
+                  className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
                   <Eye className="w-4 h-4" />
                   <span>View</span>
                 </button>

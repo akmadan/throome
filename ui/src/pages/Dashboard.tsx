@@ -55,7 +55,7 @@ export default function Dashboard() {
             Quick Actions
           </h2>
           <div className="space-y-3">
-            <button className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+            <button className="w-full flex items-center justify-between px-4 py-3 bg-red-50 dark:bg-red-900/20 text-[#FF5050] dark:text-[#FF5050] rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
               <span className="font-medium">Create New Cluster</span>
               <span className="text-2xl">+</span>
             </button>
@@ -83,7 +83,7 @@ export default function Dashboard() {
               { type: 'service', action: 'New PostgreSQL service added', time: '1 hour ago' },
             ].map((activity, index) => (
               <div key={index} className="flex items-start space-x-3">
-                <div className="w-2 h-2 mt-2 bg-blue-500 rounded-full"></div>
+                <div className="w-2 h-2 mt-2 bg-red-500 rounded-full"></div>
                 <div className="flex-1">
                   <p className="text-sm text-gray-900 dark:text-white">{activity.action}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{activity.time}</p>

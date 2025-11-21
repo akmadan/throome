@@ -4,9 +4,10 @@ import { Copy, Check } from 'lucide-react'
 interface YamlEditorProps {
   config: any
   onChange: (config: any) => void
+  readOnly?: boolean
 }
 
-export default function YamlEditor({ config, onChange }: YamlEditorProps) {
+export default function YamlEditor({ config, onChange, readOnly = false }: YamlEditorProps) {
   const [yamlText, setYamlText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -84,13 +85,14 @@ services:
       <div className="relative">
         <textarea
           value={yamlText}
-          onChange={(e) => handleYamlChange(e.target.value)}
+          onChange={(e) => !readOnly && handleYamlChange(e.target.value)}
           placeholder={exampleYaml}
-          className={`w-full h-96 px-4 py-3 font-mono text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white ${
+          readOnly={readOnly}
+          className={`w-full h-96 px-4 py-3 font-mono text-sm border rounded-lg focus:ring-2 focus:ring-[#FF5050] focus:border-transparent bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white ${
             error
               ? 'border-red-500 dark:border-red-500'
               : 'border-gray-300 dark:border-gray-600'
-          }`}
+          } ${readOnly ? 'cursor-not-allowed opacity-75' : ''}`}
           spellCheck={false}
         />
         
@@ -114,15 +116,15 @@ services:
       )}
 
       {/* Help */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
+      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <h4 className="text-sm font-medium text-red-900 dark:text-red-300 mb-2">
           Configuration Format
         </h4>
-        <ul className="text-xs text-blue-800 dark:text-blue-400 space-y-1">
-          <li>• Define services under the <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">services:</code> key</li>
-          <li>• Each service needs: <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">type</code>, <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">host</code>, <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">port</code></li>
-          <li>• Supported types: <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">redis</code>, <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">postgres</code>, <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">kafka</code></li>
-          <li>• PostgreSQL services can include: <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">username</code>, <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">password</code>, <code className="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">database</code></li>
+        <ul className="text-xs text-red-800 dark:text-[#FF5050] space-y-1">
+          <li>• Define services under the <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">services:</code> key</li>
+          <li>• Each service needs: <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">type</code>, <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">host</code>, <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">port</code></li>
+          <li>• Supported types: <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">redis</code>, <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">postgres</code>, <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">kafka</code></li>
+          <li>• PostgreSQL services can include: <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">username</code>, <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">password</code>, <code className="bg-red-100 dark:bg-red-900 px-1 py-0.5 rounded">database</code></li>
         </ul>
       </div>
     </div>

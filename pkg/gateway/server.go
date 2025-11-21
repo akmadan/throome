@@ -13,15 +13,17 @@ import (
 	"github.com/akmadan/throome/internal/config"
 	"github.com/akmadan/throome/internal/logger"
 	"github.com/akmadan/throome/pkg/cluster"
+	"github.com/akmadan/throome/pkg/provisioner"
 	"go.uber.org/zap"
 )
 
 // Server represents the HTTP server for the gateway
 type Server struct {
-	config  *config.AppConfig
-	gateway *Gateway
-	router  *mux.Router
-	server  *http.Server
+	config      *config.AppConfig
+	gateway     *Gateway
+	router      *mux.Router
+	server      *http.Server
+	provisioner *provisioner.DockerProvisioner
 }
 
 // NewServer creates a new HTTP server
@@ -30,6 +32,18 @@ func NewServer(cfg *config.AppConfig, gateway *Gateway) *Server {
 		config:  cfg,
 		gateway: gateway,
 		router:  mux.NewRouter(),
+	}
+
+	// Initialize Docker provisioner (optional - continues if Docker is not available)
+	dockerProvisioner, err := provisioner.NewDockerProvisioner()
+	if err != nil {
+		logger.Warn("Docker provisioner not available - services must be manually started",
+			zap.Error(err),
+		)
+	} else {
+		s.provisioner = dockerProvisioner
+		gateway.SetProvisioner(dockerProvisioner)
+		logger.Info("Docker provisioner initialized successfully")
 	}
 
 	s.setupRoutes()
@@ -128,9 +142,19 @@ func (s *Server) handleListClusters(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Get service info
+		// Get service info with health status
 		services := make([]map[string]interface{}, 0)
 		for serviceName, serviceConfig := range config.Services {
+			// Try to get health status
+			healthy := false
+			adapter, err := s.gateway.GetAdapter(clusterID, serviceName)
+			if err == nil {
+				status, err := adapter.HealthCheck(r.Context())
+				if err == nil && status.Healthy {
+					healthy = true
+				}
+			}
+
 			services = append(services, map[string]interface{}{
 				"name":     serviceName,
 				"type":     serviceConfig.Type,
@@ -138,6 +162,7 @@ func (s *Server) handleListClusters(w http.ResponseWriter, r *http.Request) {
 				"port":     serviceConfig.Port,
 				"username": serviceConfig.Username,
 				"database": serviceConfig.Database,
+				"healthy":  healthy,
 			})
 		}
 
@@ -181,24 +206,81 @@ func (s *Server) handleCreateCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Provision services with Docker if provisioner is available
+	if s.provisioner != nil {
+		logger.Info("Provisioning services with Docker", zap.Int("count", len(clusterConfig.Services)))
+
+		for serviceName, serviceConfig := range clusterConfig.Services {
+			// Provision the service
+			container, err := s.provisioner.ProvisionService(r.Context(), serviceName, &serviceConfig)
+			if err != nil {
+				// Cleanup any already provisioned containers
+				for sn, sc := range clusterConfig.Services {
+					if sc.ContainerID != "" {
+						_ = s.provisioner.RemoveService(r.Context(), sc.ContainerID)
+					}
+					if sn == serviceName {
+						break
+					}
+				}
+				s.errorResponse(w, http.StatusInternalServerError,
+					fmt.Sprintf("Failed to provision service %s", serviceName), err)
+				return
+			}
+
+			// Update config with container ID
+			svc := clusterConfig.Services[serviceName]
+			svc.ContainerID = container.ContainerID
+			svc.Host = "localhost" // Override to localhost since we provisioned it
+			clusterConfig.Services[serviceName] = svc
+
+			logger.Info("Service provisioned",
+				zap.String("service", serviceName),
+				zap.String("container_id", container.ContainerID[:12]),
+			)
+		}
+
+		// Wait a moment for containers to be fully ready
+		time.Sleep(2 * time.Second)
+	}
+
 	// Create cluster
 	clusterID, err := s.gateway.CreateCluster(r.Context(), req.Name, clusterConfig)
 	if err != nil {
+		// Cleanup provisioned containers on failure
+		if s.provisioner != nil {
+			for _, serviceConfig := range clusterConfig.Services {
+				if serviceConfig.ContainerID != "" {
+					_ = s.provisioner.RemoveService(r.Context(), serviceConfig.ContainerID)
+				}
+			}
+		}
 		s.errorResponse(w, http.StatusInternalServerError, "Failed to create cluster", err)
 		return
 	}
 
-	// Get the created cluster info
+	// Get the created cluster info with health status
 	config, _ := s.gateway.GetClusterConfig(clusterID)
 
 	services := make([]map[string]interface{}, 0)
 	if config != nil {
 		for serviceName, serviceConfig := range config.Services {
+			// Check health status
+			healthy := false
+			adapter, err := s.gateway.GetAdapter(clusterID, serviceName)
+			if err == nil {
+				status, err := adapter.HealthCheck(r.Context())
+				if err == nil && status.Healthy {
+					healthy = true
+				}
+			}
+
 			services = append(services, map[string]interface{}{
-				"name": serviceName,
-				"type": serviceConfig.Type,
-				"host": serviceConfig.Host,
-				"port": serviceConfig.Port,
+				"name":    serviceName,
+				"type":    serviceConfig.Type,
+				"host":    serviceConfig.Host,
+				"port":    serviceConfig.Port,
+				"healthy": healthy,
 			})
 		}
 	}
@@ -224,20 +306,81 @@ func (s *Server) handleGetCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.jsonResponse(w, http.StatusOK, config)
+	// Build response with health status for services
+	servicesWithHealth := make(map[string]interface{})
+	for serviceName, serviceConfig := range config.Services {
+		// Check health status
+		healthy := false
+		adapter, err := s.gateway.GetAdapter(clusterID, serviceName)
+		if err == nil {
+			status, err := adapter.HealthCheck(r.Context())
+			if err == nil && status.Healthy {
+				healthy = true
+			}
+		}
+
+		servicesWithHealth[serviceName] = map[string]interface{}{
+			"type":     serviceConfig.Type,
+			"host":     serviceConfig.Host,
+			"port":     serviceConfig.Port,
+			"username": serviceConfig.Username,
+			"password": serviceConfig.Password,
+			"database": serviceConfig.Database,
+			"healthy":  healthy,
+		}
+	}
+
+	response := map[string]interface{}{
+		"id":         clusterID,
+		"name":       config.Name,
+		"created_at": time.Now().Format(time.RFC3339),
+		"config": map[string]interface{}{
+			"services": servicesWithHealth,
+		},
+	}
+
+	s.jsonResponse(w, http.StatusOK, response)
 }
 
 func (s *Server) handleDeleteCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterID := vars["cluster_id"]
 
+	// Get cluster config to find container IDs
+	config, err := s.gateway.GetClusterConfig(clusterID)
+	if err != nil {
+		s.errorResponse(w, http.StatusNotFound, "Cluster not found", err)
+		return
+	}
+
+	// Stop and remove Docker containers if provisioner is available
+	if s.provisioner != nil {
+		logger.Info("Removing provisioned containers", zap.String("cluster_id", clusterID))
+		for serviceName, serviceConfig := range config.Services {
+			if serviceConfig.ContainerID != "" {
+				logger.Info("Removing container",
+					zap.String("service", serviceName),
+					zap.String("container_id", serviceConfig.ContainerID[:12]),
+				)
+				if err := s.provisioner.RemoveService(r.Context(), serviceConfig.ContainerID); err != nil {
+					logger.Error("Failed to remove container",
+						zap.String("service", serviceName),
+						zap.Error(err),
+					)
+					// Continue with deletion even if container removal fails
+				}
+			}
+		}
+	}
+
+	// Delete cluster
 	if err := s.gateway.DeleteCluster(r.Context(), clusterID); err != nil {
 		s.errorResponse(w, http.StatusInternalServerError, "Failed to delete cluster", err)
 		return
 	}
 
 	s.jsonResponse(w, http.StatusOK, map[string]interface{}{
-		"message": "Cluster deleted successfully",
+		"message": "Cluster and all containers deleted successfully",
 	})
 }
 

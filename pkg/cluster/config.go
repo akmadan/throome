@@ -19,17 +19,18 @@ type Config struct {
 
 // ServiceConfig represents configuration for a single infrastructure service
 type ServiceConfig struct {
-	Type     string                 `yaml:"type" json:"type"` // postgres, redis, kafka, etc.
-	Host     string                 `yaml:"host" json:"host"`
-	Port     int                    `yaml:"port" json:"port"`
-	Username string                 `yaml:"username,omitempty" json:"username,omitempty"`
-	Password string                 `yaml:"password,omitempty" json:"password,omitempty"`
-	Database string                 `yaml:"database,omitempty" json:"database,omitempty"` // For databases
-	Options  map[string]interface{} `yaml:"options,omitempty" json:"options,omitempty"`   // Service-specific options
-	Pool     PoolConfig             `yaml:"pool,omitempty" json:"pool,omitempty"`
-	TLS      TLSConfig              `yaml:"tls,omitempty" json:"tls,omitempty"`
-	Weight   int                    `yaml:"weight,omitempty" json:"weight,omitempty"` // For weighted routing
-	Replicas []ReplicaConfig        `yaml:"replicas,omitempty" json:"replicas,omitempty"`
+	Type        string                 `yaml:"type" json:"type"` // postgres, redis, kafka, etc.
+	Host        string                 `yaml:"host" json:"host"`
+	Port        int                    `yaml:"port" json:"port"`
+	Username    string                 `yaml:"username,omitempty" json:"username,omitempty"`
+	Password    string                 `yaml:"password,omitempty" json:"password,omitempty"`
+	Database    string                 `yaml:"database,omitempty" json:"database,omitempty"`         // For databases
+	ContainerID string                 `yaml:"container_id,omitempty" json:"container_id,omitempty"` // Docker container ID (if provisioned by Throome)
+	Options     map[string]interface{} `yaml:"options,omitempty" json:"options,omitempty"`           // Service-specific options
+	Pool        PoolConfig             `yaml:"pool,omitempty" json:"pool,omitempty"`
+	TLS         TLSConfig              `yaml:"tls,omitempty" json:"tls,omitempty"`
+	Weight      int                    `yaml:"weight,omitempty" json:"weight,omitempty"` // For weighted routing
+	Replicas    []ReplicaConfig        `yaml:"replicas,omitempty" json:"replicas,omitempty"`
 }
 
 // PoolConfig represents connection pool configuration

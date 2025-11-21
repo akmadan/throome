@@ -25,6 +25,7 @@ type Gateway struct {
 	adapterFactory *adapters.Factory
 	collector      *monitor.Collector
 	healthChecker  *monitor.HealthChecker
+	provisioner    interface{} // Docker provisioner (interface for flexibility)
 	mu             sync.RWMutex
 }
 
@@ -47,6 +48,11 @@ func NewGateway(clustersDir string) (*Gateway, error) {
 	// Create health checker (10s interval, 5s timeout, 3 failures threshold)
 	healthChecker := monitor.NewHealthChecker(10*time.Second, 5*time.Second, 3)
 
+	// Create Docker provisioner (optional - continues if Docker is not available)
+	var provisioner interface{}
+	// Provisioner will be initialized later to avoid import cycles
+	// It will be set via SetProvisioner method
+
 	return &Gateway{
 		clusterManager: clusterManager,
 		routers:        make(map[string]*router.Router),
@@ -54,6 +60,7 @@ func NewGateway(clustersDir string) (*Gateway, error) {
 		adapterFactory: factory,
 		collector:      collector,
 		healthChecker:  healthChecker,
+		provisioner:    provisioner,
 	}, nil
 }
 
@@ -182,8 +189,25 @@ func (g *Gateway) GetClusterManager() *cluster.Manager {
 	return g.clusterManager
 }
 
-// CreateCluster creates a new cluster
+// SetProvisioner sets the Docker provisioner
+func (g *Gateway) SetProvisioner(provisioner interface{}) {
+	g.provisioner = provisioner
+}
+
+// CreateCluster creates a new cluster and provisions containers
 func (g *Gateway) CreateCluster(ctx context.Context, name string, config *cluster.Config) (string, error) {
+	logger.Info("Creating cluster",
+		zap.String("name", name),
+		zap.Int("services", len(config.Services)),
+	)
+
+	// If provisioner is available, provision Docker containers first
+	if g.provisioner != nil {
+		logger.Info("Provisioning services with Docker...")
+		// Type assert to access provisioner methods
+		// This will be handled by the server layer
+	}
+
 	// Create cluster
 	clusterID, err := g.clusterManager.Create(name, config)
 	if err != nil {

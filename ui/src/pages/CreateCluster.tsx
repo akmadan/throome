@@ -74,7 +74,7 @@ export default function CreateCluster() {
                 onClick={() => setViewMode('canvas')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all ${
                   viewMode === 'canvas'
-                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                    ? 'bg-white dark:bg-gray-800 text-[#FF5050] dark:text-[#FF5050] shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
                 }`}
               >
@@ -85,7 +85,7 @@ export default function CreateCluster() {
                 onClick={() => setViewMode('yaml')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all ${
                   viewMode === 'yaml'
-                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                    ? 'bg-white dark:bg-gray-800 text-[#FF5050] dark:text-[#FF5050] shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
                 }`}
               >
@@ -100,12 +100,12 @@ export default function CreateCluster() {
               value={clusterName}
               onChange={(e) => setClusterName(e.target.value)}
               placeholder="Cluster name (e.g., production-us-east)"
-              className="w-80 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              className="w-80 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#FF5050] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
 
             {/* Service Count Badge */}
-            <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+            <div className="px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <span className="text-sm font-medium text-[#FF5050] dark:text-[#FF5050]">
                 {Object.keys(clusterConfig.services).length} service(s)
               </span>
             </div>
@@ -114,7 +114,7 @@ export default function CreateCluster() {
             <button
               onClick={handleCreate}
               disabled={isCreating}
-              className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 px-6 py-2 bg-[#FF5050] text-white rounded-lg hover:bg-[#ed1515] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isCreating ? (
                 <>
