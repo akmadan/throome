@@ -157,7 +157,7 @@ func getRedisAdapter(config cluster.ServiceConfig) (interface {
 	Disconnect(context.Context) error
 	Ping(context.Context) error
 }, error) {
-	adapter, err := redisAdapter.NewRedisAdapter(config)
+	adapter, err := redisAdapter.NewRedisAdapter(&config)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func getPostgresAdapter(config cluster.ServiceConfig) (interface {
 	Disconnect(context.Context) error
 	Ping(context.Context) error
 }, error) {
-	adapter, err := postgresAdapter.NewPostgresAdapter(config)
+	adapter, err := postgresAdapter.NewPostgresAdapter(&config)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func getKafkaAdapter(config cluster.ServiceConfig) (interface {
 	Disconnect(context.Context) error
 	Ping(context.Context) error
 }, error) {
-	adapter, err := kafkaAdapter.NewKafkaAdapter(config)
+	adapter, err := kafkaAdapter.NewKafkaAdapter(&config)
 	if err != nil {
 		return nil, err
 	}

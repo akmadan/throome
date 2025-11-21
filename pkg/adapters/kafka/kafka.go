@@ -14,7 +14,7 @@ import (
 // KafkaAdapter implements the QueueAdapter interface for Kafka
 type KafkaAdapter struct {
 	*adapters.BaseAdapter
-	config    cluster.ServiceConfig
+	config    *cluster.ServiceConfig
 	writer    *kafka.Writer
 	readers   map[string]*kafka.Reader
 	handlers  map[string]adapters.MessageHandler
@@ -22,7 +22,7 @@ type KafkaAdapter struct {
 }
 
 // NewKafkaAdapter creates a new Kafka adapter
-func NewKafkaAdapter(config cluster.ServiceConfig) (adapters.Adapter, error) {
+func NewKafkaAdapter(config *cluster.ServiceConfig) (adapters.Adapter, error) {
 	adapter := &KafkaAdapter{
 		BaseAdapter: adapters.NewBaseAdapter(config),
 		config:      config,
@@ -66,9 +66,7 @@ func (k *KafkaAdapter) Disconnect(ctx context.Context) error {
 
 	// Close all readers
 	for topic, reader := range k.readers {
-		if err := reader.Close(); err != nil {
-			// Log error but continue closing others
-		}
+		_ = reader.Close() // Ignore errors during cleanup
 		delete(k.readers, topic)
 	}
 
@@ -132,7 +130,7 @@ func (k *KafkaAdapter) Publish(ctx context.Context, topic string, message []byte
 }
 
 // PublishWithKey publishes a message with a key to a topic
-func (k *KafkaAdapter) PublishWithKey(ctx context.Context, topic string, key []byte, message []byte) error {
+func (k *KafkaAdapter) PublishWithKey(ctx context.Context, topic string, key, message []byte) error {
 	start := time.Now()
 
 	err := k.writer.WriteMessages(ctx, kafka.Message{
@@ -204,10 +202,8 @@ func (k *KafkaAdapter) consumeMessages(ctx context.Context, topic string, reader
 				message.Headers[header.Key] = string(header.Value)
 			}
 
-			// Call handler
-			if err := handler(ctx, message); err != nil {
-				// Handle error (log it)
-			}
+		// Call handler, ignore errors to continue processing
+		_ = handler(ctx, message)
 		}
 	}
 }
@@ -289,7 +285,8 @@ func (k *KafkaAdapter) ListTopics(ctx context.Context) ([]string, error) {
 
 	// Extract unique topic names
 	topicMap := make(map[string]bool)
-	for _, partition := range partitions {
+	for i := range partitions {
+		partition := partitions[i]
 		topicMap[partition.Topic] = true
 	}
 

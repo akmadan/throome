@@ -211,4 +211,3 @@ func TestManagerExists(t *testing.T) {
 		t.Error("Expected cluster to not exist")
 	}
 }
-

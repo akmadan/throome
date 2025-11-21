@@ -11,14 +11,14 @@ import (
 
 // Router handles routing requests to appropriate adapters
 type Router struct {
-	config   cluster.Config
+	config   *cluster.Config
 	adapters map[string]adapters.Adapter
 	strategy Strategy
 	mu       sync.RWMutex
 }
 
 // NewRouter creates a new router for a cluster
-func NewRouter(config cluster.Config, adapterMap map[string]adapters.Adapter) *Router {
+func NewRouter(config *cluster.Config, adapterMap map[string]adapters.Adapter) *Router {
 	router := &Router{
 		config:   config,
 		adapters: adapterMap,
@@ -44,7 +44,7 @@ func (r *Router) GetAdapter(serviceName string) (adapters.Adapter, error) {
 }
 
 // Route routes a request to an appropriate adapter using the configured strategy
-func (r *Router) Route(ctx context.Context, serviceName string, serviceType string) (adapters.Adapter, error) {
+func (r *Router) Route(ctx context.Context, serviceName, serviceType string) (adapters.Adapter, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -124,8 +124,8 @@ func (r *Router) createStrategy(strategyName string) Strategy {
 		return NewLeastConnectionsStrategy()
 	case "ai":
 		return NewAIStrategy()
-	case "round_robin":
-		fallthrough
+	case "round_robin", "":
+		return NewRoundRobinStrategy()
 	default:
 		return NewRoundRobinStrategy()
 	}
@@ -139,7 +139,10 @@ func (r *Router) HealthCheckAll(ctx context.Context) map[string]*adapters.Health
 	results := make(map[string]*adapters.HealthStatus)
 
 	for name, adapter := range r.adapters {
-		status, _ := adapter.HealthCheck(ctx)
+		status, err := adapter.HealthCheck(ctx)
+		if err != nil {
+			continue
+		}
 		results[name] = status
 	}
 

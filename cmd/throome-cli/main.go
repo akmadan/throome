@@ -25,10 +25,6 @@ var (
 
 	// Command-specific flags
 	clusterName string
-	serviceName string
-	serviceType string
-	host        string
-	port        int
 )
 
 func main() {
@@ -197,7 +193,7 @@ var deleteClusterCmd = &cobra.Command{
 		// Confirm deletion
 		fmt.Printf("Are you sure you want to delete cluster '%s'? (yes/no): ", clusterID)
 		var confirm string
-		fmt.Scanln(&confirm)
+		_, _ = fmt.Scanln(&confirm)
 
 		if confirm != "yes" {
 			fmt.Println("Deletion cancelled.")
@@ -243,7 +239,7 @@ func init() {
 
 	// Create cluster flags
 	createClusterCmd.Flags().StringVar(&clusterName, "name", "", "Cluster name (required)")
-	createClusterCmd.MarkFlagRequired("name")
+	_ = createClusterCmd.MarkFlagRequired("name")
 
 	// Add commands
 	rootCmd.AddCommand(versionCmd)

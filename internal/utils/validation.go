@@ -76,7 +76,7 @@ func SanitizeClusterName(name string) string {
 
 	// Ensure minimum length
 	if len(id) < 3 {
-		id = id + "-01"
+		id += "-01"
 	}
 
 	return id

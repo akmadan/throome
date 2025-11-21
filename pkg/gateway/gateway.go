@@ -98,7 +98,8 @@ func (g *Gateway) initializeCluster(ctx context.Context, clusterID string, confi
 	clusterAdapters := make(map[string]adapters.Adapter)
 
 	for serviceName, serviceConfig := range config.Services {
-		adapter, err := g.adapterFactory.Create(serviceConfig)
+		svcConfig := serviceConfig
+		adapter, err := g.adapterFactory.Create(&svcConfig)
 		if err != nil {
 			logger.Error("Failed to create adapter",
 				zap.String("cluster_id", clusterID),
@@ -130,7 +131,7 @@ func (g *Gateway) initializeCluster(ctx context.Context, clusterID string, confi
 	g.adapters[clusterID] = clusterAdapters
 
 	// Create router for this cluster
-	g.routers[clusterID] = router.NewRouter(*config, clusterAdapters)
+	g.routers[clusterID] = router.NewRouter(config, clusterAdapters)
 
 	return nil
 }

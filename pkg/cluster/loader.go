@@ -58,7 +58,7 @@ func (l *Loader) Save(config *Config) error {
 
 	// Create cluster directory if it doesn't exist
 	clusterDir := l.getClusterDir(config.ClusterID)
-	if err := os.MkdirAll(clusterDir, 0755); err != nil {
+	if err := os.MkdirAll(clusterDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create cluster directory: %w", err)
 	}
 
@@ -70,7 +70,7 @@ func (l *Loader) Save(config *Config) error {
 
 	// Write to file
 	configPath := l.getConfigPath(config.ClusterID)
-	if err := os.WriteFile(configPath, data, 0644); err != nil {
+	if err := os.WriteFile(configPath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

@@ -225,4 +225,3 @@ func TestDefaultPoolConfig(t *testing.T) {
 		t.Error("Expected max lifetime to be positive")
 	}
 }
-

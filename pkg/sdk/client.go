@@ -47,7 +47,7 @@ func (c *Client) Queue() *QueueClient {
 func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 	url := fmt.Sprintf("%s/api/v1/clusters/%s/health", c.gatewayURL, c.clusterID)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 }
 
 // request makes an HTTP request to the gateway
-func (c *Client) request(ctx context.Context, method, endpoint string, body interface{}, result interface{}) error {
+func (c *Client) request(ctx context.Context, method, endpoint string, body, result interface{}) error {
 	url := fmt.Sprintf("%s/api/v1/clusters/%s/%s", c.gatewayURL, c.clusterID, endpoint)
 
 	var bodyReader io.Reader
@@ -100,7 +100,7 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body inte
 
 	if resp.StatusCode >= 400 {
 		var errResp map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&errResp)
+		_ = json.NewDecoder(resp.Body).Decode(&errResp)
 		return fmt.Errorf("request failed: %s - %v", resp.Status, errResp)
 	}
 

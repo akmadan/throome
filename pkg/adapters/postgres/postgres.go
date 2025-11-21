@@ -16,12 +16,12 @@ import (
 // PostgresAdapter implements the DatabaseAdapter interface for PostgreSQL
 type PostgresAdapter struct {
 	*adapters.BaseAdapter
-	config cluster.ServiceConfig
+	config *cluster.ServiceConfig
 	pool   *pgxpool.Pool
 }
 
 // NewPostgresAdapter creates a new PostgreSQL adapter
-func NewPostgresAdapter(config cluster.ServiceConfig) (adapters.Adapter, error) {
+func NewPostgresAdapter(config *cluster.ServiceConfig) (adapters.Adapter, error) {
 	adapter := &PostgresAdapter{
 		BaseAdapter: adapters.NewBaseAdapter(config),
 		config:      config,

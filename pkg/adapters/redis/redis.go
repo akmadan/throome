@@ -14,12 +14,12 @@ import (
 // RedisAdapter implements the CacheAdapter interface for Redis
 type RedisAdapter struct {
 	*adapters.BaseAdapter
-	config cluster.ServiceConfig
+	config *cluster.ServiceConfig
 	client *redis.Client
 }
 
 // NewRedisAdapter creates a new Redis adapter
-func NewRedisAdapter(config cluster.ServiceConfig) (adapters.Adapter, error) {
+func NewRedisAdapter(config *cluster.ServiceConfig) (adapters.Adapter, error) {
 	adapter := &RedisAdapter{
 		BaseAdapter: adapters.NewBaseAdapter(config),
 		config:      config,
@@ -113,7 +113,7 @@ func (r *RedisAdapter) Get(ctx context.Context, key string) (string, error) {
 }
 
 // Set sets a value in Redis
-func (r *RedisAdapter) Set(ctx context.Context, key string, value string, expiration time.Duration) error {
+func (r *RedisAdapter) Set(ctx context.Context, key, value string, expiration time.Duration) error {
 	start := time.Now()
 	err := r.client.Set(ctx, key, value, expiration).Err()
 	r.RecordRequest(time.Since(start), err == nil)
@@ -163,7 +163,7 @@ func (r *RedisAdapter) Expire(ctx context.Context, key string, expiration time.D
 // Additional Redis-specific operations
 
 // HSet sets a field in a hash
-func (r *RedisAdapter) HSet(ctx context.Context, key string, field string, value string) error {
+func (r *RedisAdapter) HSet(ctx context.Context, key, field, value string) error {
 	start := time.Now()
 	err := r.client.HSet(ctx, key, field, value).Err()
 	r.RecordRequest(time.Since(start), err == nil)
@@ -171,7 +171,7 @@ func (r *RedisAdapter) HSet(ctx context.Context, key string, field string, value
 }
 
 // HGet gets a field from a hash
-func (r *RedisAdapter) HGet(ctx context.Context, key string, field string) (string, error) {
+func (r *RedisAdapter) HGet(ctx context.Context, key, field string) (string, error) {
 	start := time.Now()
 	val, err := r.client.HGet(ctx, key, field).Result()
 	r.RecordRequest(time.Since(start), err == nil || err == redis.Nil)

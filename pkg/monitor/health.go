@@ -34,7 +34,7 @@ type HealthHistory struct {
 }
 
 // NewHealthChecker creates a new health checker
-func NewHealthChecker(interval time.Duration, timeout time.Duration, threshold int) *HealthChecker {
+func NewHealthChecker(interval, timeout time.Duration, threshold int) *HealthChecker {
 	return &HealthChecker{
 		interval:  interval,
 		timeout:   timeout,

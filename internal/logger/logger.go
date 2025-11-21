@@ -35,7 +35,8 @@ func InitLogger(development bool) error {
 // Sync flushes any buffered log entries
 func Sync() {
 	if Log != nil {
-		_ = Log.Sync()
+		// Explicitly ignore sync error during cleanup
+		_ = Log.Sync() //nolint:errcheck
 	}
 }
 

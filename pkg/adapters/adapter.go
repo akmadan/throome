@@ -165,7 +165,7 @@ type Factory struct {
 }
 
 // AdapterConstructor is a function that creates an adapter
-type AdapterConstructor func(config cluster.ServiceConfig) (Adapter, error)
+type AdapterConstructor func(config *cluster.ServiceConfig) (Adapter, error)
 
 // NewFactory creates a new adapter factory
 func NewFactory() *Factory {
@@ -180,7 +180,7 @@ func (f *Factory) Register(serviceType string, constructor AdapterConstructor) {
 }
 
 // Create creates an adapter for the given service configuration
-func (f *Factory) Create(config cluster.ServiceConfig) (Adapter, error) {
+func (f *Factory) Create(config *cluster.ServiceConfig) (Adapter, error) {
 	constructor, exists := f.constructors[config.Type]
 	if !exists {
 		return nil, ErrAdapterNotFound{Type: config.Type}
@@ -200,13 +200,13 @@ func (e ErrAdapterNotFound) Error() string {
 
 // BaseAdapter provides common functionality for adapters
 type BaseAdapter struct {
-	config    cluster.ServiceConfig
+	config    *cluster.ServiceConfig
 	connected bool
 	metrics   *Metrics
 }
 
 // NewBaseAdapter creates a new base adapter
-func NewBaseAdapter(config cluster.ServiceConfig) *BaseAdapter {
+func NewBaseAdapter(config *cluster.ServiceConfig) *BaseAdapter {
 	return &BaseAdapter{
 		config:    config,
 		connected: false,

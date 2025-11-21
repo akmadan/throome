@@ -115,7 +115,7 @@ func TestSanitizeClusterName(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("SanitizeClusterName(%q) = %q, want %q", tt.input, got, tt.want)
 			}
-			
+
 			// Verify result is a valid cluster ID
 			if err := ValidateClusterID(got); err != nil {
 				t.Errorf("SanitizeClusterName(%q) produced invalid ID %q: %v", tt.input, got, err)
@@ -169,4 +169,3 @@ func TestValidateHost(t *testing.T) {
 		})
 	}
 }
-

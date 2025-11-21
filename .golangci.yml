@@ -3,11 +3,6 @@
 run:
   timeout: 5m
   tests: true
-  skip-dirs:
-    - vendor
-    - test/integration
-  skip-files:
-    - ".*\\.pb\\.go$"
 
 linters:
   enable:
@@ -32,6 +27,9 @@ linters-settings:
 
   govet:
     enable-all: true
+    disable:
+      - fieldalignment  # Field alignment is cosmetic and doesn't affect functionality
+      - shadow          # Shadow warnings can be noisy
     
   gocyclo:
     min-complexity: 15
@@ -59,6 +57,11 @@ linters-settings:
       - name: receiver-naming
 
 issues:
+  exclude-dirs:
+    - vendor
+    - test/integration
+  exclude-files:
+    - ".*\\.pb\\.go$"
   exclude-rules:
     # Exclude some linters from running on tests files
     - path: _test\.go
@@ -73,7 +76,8 @@ issues:
   max-same-issues: 0
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
