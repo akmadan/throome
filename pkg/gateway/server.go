@@ -57,12 +57,13 @@ func (s *Server) setupRoutes() {
 		s.router.Handle(s.config.Monitoring.MetricsPath, promhttp.Handler())
 	}
 
-	// Root endpoint
-	s.router.HandleFunc("/", s.handleRoot).Methods("GET")
-
 	// Middleware
 	s.router.Use(s.loggingMiddleware)
 	s.router.Use(s.corsMiddleware)
+
+	// Serve embedded UI - must be last to catch all unmatched routes
+	uiHandler := GetUIHandler()
+	s.router.PathPrefix("/").Handler(uiHandler)
 }
 
 // Start starts the HTTP server

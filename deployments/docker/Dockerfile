@@ -1,6 +1,19 @@
 # Multi-stage Dockerfile for Throome Gateway
 
-# Stage 1: Build
+# Stage 1: Build UI
+FROM node:18-alpine AS ui-builder
+
+WORKDIR /ui
+
+# Copy UI package files
+COPY ui/package*.json ui/.npmrc ./
+RUN npm install --legacy-peer-deps
+
+# Copy UI source and build
+COPY ui/ ./
+RUN npm run build
+
+# Stage 2: Build Go Binary
 FROM golang:1.21-alpine AS builder
 
 # Install build dependencies
@@ -16,7 +29,10 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build binaries
+# Copy built UI from ui-builder stage
+COPY --from=ui-builder /ui/dist ./pkg/gateway/ui/dist
+
+# Build binaries with embedded UI
 ARG VERSION=dev
 ARG BUILD_TIME
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
@@ -26,7 +42,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags "-w -s -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME}" \
     -o throome-cli ./cmd/throome-cli
 
-# Stage 2: Runtime
+# Stage 3: Runtime
 FROM alpine:3.19
 
 # Install runtime dependencies
@@ -58,7 +74,7 @@ EXPOSE 9000 9001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:9000/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:9000/api/v1/health || exit 1
 
 # Set environment variables
 ENV THROOME_PORT=9000
