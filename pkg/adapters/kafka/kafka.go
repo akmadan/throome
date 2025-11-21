@@ -202,8 +202,8 @@ func (k *KafkaAdapter) consumeMessages(ctx context.Context, topic string, reader
 				message.Headers[header.Key] = string(header.Value)
 			}
 
-		// Call handler, ignore errors to continue processing
-		_ = handler(ctx, message)
+			// Call handler, ignore errors to continue processing
+			_ = handler(ctx, message)
 		}
 	}
 }

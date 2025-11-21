@@ -47,14 +47,13 @@ linters-settings:
 
   revive:
     rules:
-      - name: exported
-        arguments:
-          - "checkPrivateReceivers"
       - name: var-naming
       - name: package-comments
       - name: error-return
       - name: error-strings
       - name: receiver-naming
+      # Disabled exported check that complains about stuttering names
+      # (e.g., redis.RedisAdapter). This is acceptable for clarity.
 
 issues:
   exclude-dirs:

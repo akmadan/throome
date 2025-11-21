@@ -150,7 +150,8 @@ func (c *Config) Validate() error {
 		return ErrInvalidClusterConfig{Field: "services", Message: "at least one service is required"}
 	}
 
-	for name, svc := range c.Services {
+	for name := range c.Services {
+		svc := c.Services[name]
 		if err := svc.Validate(); err != nil {
 			return ErrInvalidClusterConfig{Field: "services." + name, Message: err.Error()}
 		}

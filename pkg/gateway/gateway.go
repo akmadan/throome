@@ -97,9 +97,9 @@ func (g *Gateway) initializeCluster(ctx context.Context, clusterID string, confi
 	// Create adapters for this cluster
 	clusterAdapters := make(map[string]adapters.Adapter)
 
-	for serviceName, serviceConfig := range config.Services {
-		svcConfig := serviceConfig
-		adapter, err := g.adapterFactory.Create(&svcConfig)
+	for serviceName := range config.Services {
+		serviceConfig := config.Services[serviceName]
+		adapter, err := g.adapterFactory.Create(&serviceConfig)
 		if err != nil {
 			logger.Error("Failed to create adapter",
 				zap.String("cluster_id", clusterID),
