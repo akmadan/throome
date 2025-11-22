@@ -1,6 +1,6 @@
-# Throome
+![Throome](/images/text_logo.svg){ width=200 }
 
-> A lightweight, open-source Go gateway for unified backend infrastructure access with Docker container provisioning.
+> A lightweight, open-source gateway for unified backend infrastructure access with Docker container provisioning.
 
 Throome provides a single gateway layer to access multiple infrastructure components (Redis, PostgreSQL, Kafka) via cluster-based management. It eliminates direct integration complexity by providing unified SDKs and automatic service provisioning.
 
@@ -10,6 +10,8 @@ Throome provides a single gateway layer to access multiple infrastructure compon
 [![Docker Pulls](https://img.shields.io/docker/pulls/akshitmadan/throome)](https://hub.docker.com/r/akshitmadan/throome)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+![Docker Command to Run Throome](/images/docker_command.png)
 
 ---
 
