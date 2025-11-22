@@ -6,7 +6,6 @@ import {
   Activity,
   GitBranch,
   Settings,
-  ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ConnectionStatus from './ConnectionStatus'
@@ -55,7 +54,7 @@ export default function Sidebar() {
               )
             }
           >
-            {({ isActive }) => (
+            {() => (
               <>
                 <div className="flex items-center space-x-3">
                   <item.icon className="w-4 h-4" />
