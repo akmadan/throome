@@ -27,17 +27,17 @@ export default function Services() {
         const allServices: ServiceRow[] = []
         
         clusters.forEach((cluster: Cluster) => {
-          if (cluster.config?.services) {
-            Object.entries(cluster.config.services).forEach(([serviceName, config]: [string, any]) => {
+          if (cluster.services && Array.isArray(cluster.services)) {
+            cluster.services.forEach((service: any) => {
               allServices.push({
                 clusterId: cluster.id,
                 clusterName: cluster.name,
-                serviceName,
-                type: config.type,
-                host: config.host || 'N/A',
-                port: config.port || 0,
-                database: config.database,
-                healthy: config.healthy !== false,
+                serviceName: service.name,
+                type: service.type,
+                host: service.host || 'N/A',
+                port: service.port || 0,
+                database: service.database,
+                healthy: service.healthy !== false,
               })
             })
           }
