@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Server, Trash2, Eye, MoreVertical } from 'lucide-react'
+import { Plus, Server, Trash2, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { getClusters, deleteCluster, type Cluster } from '@/api/client'
 

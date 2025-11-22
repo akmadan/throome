@@ -162,9 +162,9 @@ export default function ViewCluster() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
         {viewMode === 'yaml' ? (
-          <YamlEditor config={clusterConfig} readOnly />
+          <YamlEditor config={clusterConfig} onChange={() => {}} readOnly />
         ) : (
-          <CanvasEditor config={clusterConfig} readOnly />
+          <CanvasEditor config={clusterConfig} onChange={() => {}} readOnly />
         )}
       </div>
     </div>
