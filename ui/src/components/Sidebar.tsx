@@ -22,17 +22,25 @@ const navigation = [
 
 export default function Sidebar() {
   return (
-    <div className="flex flex-col w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col w-56 bg-card border-r border-border">
       {/* Logo */}
-      <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center h-14 px-4 border-b border-border">
         <div className="flex items-center space-x-3">
-          <img src="/text_logo.svg" alt="throome" className="h-10" />
-       
+          <img
+            src="/text_logo.svg"
+            alt="throome"
+            className="h-6 hidden dark:block"
+          />
+          <img
+            src="/text_logo.svg"
+            alt="throome"
+            className="h-6 dark:hidden"
+          />
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
         {navigation.map((item) => (
           <NavLink
             key={item.name}
@@ -40,22 +48,19 @@ export default function Sidebar() {
             end={item.href === '/'}
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors group',
+                'flex items-center px-3 py-2.5 text-[13px] font-normal rounded-md transition-all',
                 isActive
-                  ? 'bg-red-50 text-[#FF5050] dark:bg-red-900/20 dark:text-[#FF5050]'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-accent/80 text-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
               )
             }
           >
             {({ isActive }) => (
               <>
                 <div className="flex items-center space-x-3">
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className="w-4 h-4" />
                   <span>{item.name}</span>
                 </div>
-                {isActive && (
-                  <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                )}
               </>
             )}
           </NavLink>
@@ -63,18 +68,12 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+      <div className="px-3 py-3 border-t border-border">
         <ConnectionStatus />
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">v0.1</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              throome gateway
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Port :9000</p>
-          </div>
+        <div className="mt-2 px-2 py-1.5 bg-muted/30 rounded-md">
+          <p className="text-xs font-medium text-muted-foreground">
+            throome v0.1 • :9000
+          </p>
         </div>
       </div>
     </div>

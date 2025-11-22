@@ -45,52 +45,54 @@ export default function CreateCluster() {
     }
   }
 
+  const serviceCount = Object.keys(clusterConfig.services).length
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-screen bg-background">
       {/* Top Bar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+      <div className="bg-card border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <button
               onClick={() => navigate('/clusters')}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-muted/50 rounded-md transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl font-semibold text-foreground">
                 Create New Cluster
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Design your infrastructure with visual canvas or YAML
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* View Mode Toggle */}
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex bg-muted/50 rounded-md p-0.5">
               <button
                 onClick={() => setViewMode('canvas')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all ${
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-sm transition-all text-xs font-medium ${
                   viewMode === 'canvas'
-                    ? 'bg-white dark:bg-gray-800 text-[#FF5050] dark:text-[#FF5050] shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Workflow className="w-4 h-4" />
-                <span className="font-medium text-sm">Canvas</span>
+                <Workflow className="w-3.5 h-3.5" />
+                <span>Canvas</span>
               </button>
               <button
                 onClick={() => setViewMode('yaml')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all ${
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-sm transition-all text-xs font-medium ${
                   viewMode === 'yaml'
-                    ? 'bg-white dark:bg-gray-800 text-[#FF5050] dark:text-[#FF5050] shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
+                    ? 'bg-card text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <FileCode className="w-4 h-4" />
-                <span className="font-medium text-sm">YAML</span>
+                <FileCode className="w-3.5 h-3.5" />
+                <span>YAML</span>
               </button>
             </div>
 
@@ -100,13 +102,13 @@ export default function CreateCluster() {
               value={clusterName}
               onChange={(e) => setClusterName(e.target.value)}
               placeholder="Cluster name (e.g., production-us-east)"
-              className="w-80 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#FF5050] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              className="w-72 px-3 py-1.5 border border-border rounded-md focus:ring-1 focus:ring-primary/50 focus:border-primary bg-background text-foreground text-sm placeholder:text-muted-foreground"
             />
 
             {/* Service Count Badge */}
-            <div className="px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <span className="text-sm font-medium text-[#FF5050] dark:text-[#FF5050]">
-                {Object.keys(clusterConfig.services).length} service(s)
+            <div className="px-3 py-1.5 bg-muted/50 rounded-md">
+              <span className="text-xs font-medium text-foreground">
+                {serviceCount} service{serviceCount !== 1 ? 's' : ''}
               </span>
             </div>
 
@@ -114,7 +116,7 @@ export default function CreateCluster() {
             <button
               onClick={handleCreate}
               disabled={isCreating}
-              className="flex items-center space-x-2 px-6 py-2 bg-[#FF5050] text-white rounded-lg hover:bg-[#ed1515] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
             >
               {isCreating ? (
                 <>
@@ -134,15 +136,12 @@ export default function CreateCluster() {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
-        {viewMode === 'canvas' ? (
-          <CanvasEditor config={clusterConfig} onChange={setClusterConfig} />
+        {viewMode === 'yaml' ? (
+          <YamlEditor config={clusterConfig} onChange={setClusterConfig} />
         ) : (
-          <div className="h-full p-6">
-            <YamlEditor config={clusterConfig} onChange={setClusterConfig} />
-          </div>
+          <CanvasEditor config={clusterConfig} onChange={setClusterConfig} />
         )}
       </div>
     </div>
   )
 }
-

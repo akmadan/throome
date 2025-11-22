@@ -28,11 +28,11 @@ export default function StatsCard({
   color = 'blue',
 }: StatsCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
           {change && (
             <div className="flex items-center space-x-1 mt-2">
               {trend === 'up' && <TrendingUp className="w-4 h-4 text-green-500" />}
@@ -40,7 +40,7 @@ export default function StatsCard({
               <span
                 className={cn(
                   'text-sm',
-                  trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
+                  trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'
                 )}
               >
                 {change}

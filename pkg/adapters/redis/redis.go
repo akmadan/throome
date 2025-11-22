@@ -76,7 +76,16 @@ func (r *RedisAdapter) Disconnect(ctx context.Context) error {
 func (r *RedisAdapter) Ping(ctx context.Context) error {
 	start := time.Now()
 	err := r.client.Ping(ctx).Err()
-	r.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	r.RecordRequest(duration, err == nil)
+
+	// Log activity
+	response := "PONG"
+	if err != nil {
+		response = ""
+	}
+	r.LogActivity("PING", "PING", duration, err, response)
+
 	return err
 }
 
@@ -103,10 +112,19 @@ func (r *RedisAdapter) HealthCheck(ctx context.Context) (*adapters.HealthStatus,
 func (r *RedisAdapter) Get(ctx context.Context, key string) (string, error) {
 	start := time.Now()
 	val, err := r.client.Get(ctx, key).Result()
-	r.RecordRequest(time.Since(start), err == nil || err == redis.Nil)
+	duration := time.Since(start)
+	r.RecordRequest(duration, err == nil || err == redis.Nil)
+
+	// Log activity
+	response := val
+	if err == redis.Nil {
+		response = "(nil)"
+		err = nil // Key doesn't exist is not an error
+	}
+	r.LogActivity("GET", fmt.Sprintf("GET %s", key), duration, err, response)
 
 	if err == redis.Nil {
-		return "", nil // Key doesn't exist
+		return "", nil
 	}
 
 	return val, err
@@ -116,15 +134,34 @@ func (r *RedisAdapter) Get(ctx context.Context, key string) (string, error) {
 func (r *RedisAdapter) Set(ctx context.Context, key, value string, expiration time.Duration) error {
 	start := time.Now()
 	err := r.client.Set(ctx, key, value, expiration).Err()
-	r.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	r.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := fmt.Sprintf("SET %s %s", key, value)
+	if expiration > 0 {
+		command += fmt.Sprintf(" EX %d", int(expiration.Seconds()))
+	}
+	response := "OK"
+	if err != nil {
+		response = ""
+	}
+	r.LogActivity("SET", command, duration, err, response)
+
 	return err
 }
 
 // Delete deletes a key from Redis
 func (r *RedisAdapter) Delete(ctx context.Context, key string) error {
 	start := time.Now()
-	err := r.client.Del(ctx, key).Err()
-	r.RecordRequest(time.Since(start), err == nil)
+	result, err := r.client.Del(ctx, key).Result()
+	duration := time.Since(start)
+	r.RecordRequest(duration, err == nil)
+
+	// Log activity
+	response := fmt.Sprintf("%d keys deleted", result)
+	r.LogActivity("DELETE", fmt.Sprintf("DEL %s", key), duration, err, response)
+
 	return err
 }
 

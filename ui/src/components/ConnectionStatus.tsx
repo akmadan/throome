@@ -29,7 +29,7 @@ export default function ConnectionStatus() {
 
   if (isConnected === null) {
     return (
-      <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+      <div className="flex items-center space-x-2 text-muted-foreground">
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
         <span className="text-xs">Connecting...</span>
       </div>
@@ -55,7 +55,7 @@ export default function ConnectionStatus() {
       <span className="text-xs">
         Connected
         {lastCheck && (
-          <span className="text-gray-500 dark:text-gray-400 ml-1">
+          <span className="text-muted-foreground ml-1">
             ({lastCheck.toLocaleTimeString()})
           </span>
         )}

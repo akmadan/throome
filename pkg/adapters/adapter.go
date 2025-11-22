@@ -200,9 +200,17 @@ func (e ErrAdapterNotFound) Error() string {
 
 // BaseAdapter provides common functionality for adapters
 type BaseAdapter struct {
-	config    *cluster.ServiceConfig
-	connected bool
-	metrics   *Metrics
+	config         *cluster.ServiceConfig
+	connected      bool
+	metrics        *Metrics
+	activityLogger ActivityLogger
+	clusterID      string
+	serviceName    string
+}
+
+// ActivityLogger interface for logging service activities
+type ActivityLogger interface {
+	LogOperation(clusterID, serviceName, serviceType, operation, command string, duration time.Duration, err error, response string)
 }
 
 // NewBaseAdapter creates a new base adapter
@@ -220,6 +228,30 @@ func NewBaseAdapter(config *cluster.ServiceConfig) *BaseAdapter {
 			ActiveConnections: 0,
 			TotalConnections:  0,
 		},
+		activityLogger: nil, // Set later by SetActivityLogger
+	}
+}
+
+// SetActivityLogger sets the activity logger for this adapter
+func (b *BaseAdapter) SetActivityLogger(logger ActivityLogger, clusterID, serviceName string) {
+	b.activityLogger = logger
+	b.clusterID = clusterID
+	b.serviceName = serviceName
+}
+
+// LogActivity logs an activity if logger is configured
+func (b *BaseAdapter) LogActivity(operation, command string, duration time.Duration, err error, response string) {
+	if b.activityLogger != nil {
+		b.activityLogger.LogOperation(
+			b.clusterID,
+			b.serviceName,
+			b.config.Type,
+			operation,
+			command,
+			duration,
+			err,
+			response,
+		)
 	}
 }
 

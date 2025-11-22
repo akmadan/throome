@@ -6,6 +6,7 @@ import Clusters from './pages/Clusters'
 import CreateCluster from './pages/CreateCluster'
 import ViewCluster from './pages/ViewCluster'
 import Services from './pages/Services'
+import ServiceDetail from './pages/ServiceDetail'
 import Monitoring from './pages/Monitoring'
 import Routing from './pages/Routing'
 import Settings from './pages/Settings'
@@ -25,6 +26,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/clusters" element={<Clusters />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/services/:clusterId/:serviceName" element={<ServiceDetail />} />
               <Route path="/monitoring" element={<Monitoring />} />
               <Route path="/routing" element={<Routing />} />
               <Route path="/settings" element={<Settings />} />
