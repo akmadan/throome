@@ -7,7 +7,7 @@
 bin/
 dist/
 ui/dist/
-pkg/gateway/ui/dist/
+# Note: pkg/gateway/ui/dist/ is NOT gitignored - these files must be committed for Go embed
 
 # Test binary, built with `go test -c`
 *.test
@@ -60,9 +60,8 @@ config.yaml
 throome.yaml
 !*.example.yaml
 
-# UI build artifacts (for future)
+# UI build artifacts
 ui/node_modules/
-ui/dist/
 ui/.next/
 ui/build/
 
