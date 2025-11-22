@@ -156,6 +156,17 @@ func (ab *ActivityBuffer) GetByService(clusterID, serviceName string, limit int)
 	ab.mu.RLock()
 	defer ab.mu.RUnlock()
 
+	const maxLimit = 1000
+	if limit <= 0 {
+		limit = 0
+	}
+	if limit > maxLimit {
+		limit = maxLimit
+	}
+	if limit > len(ab.logs) {
+		limit = len(ab.logs)
+	}
+
 	result := make([]*ActivityLog, 0, limit)
 	count := 0
 
