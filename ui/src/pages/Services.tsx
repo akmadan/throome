@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Database, Server, MessageSquare, ExternalLink, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Server, Database, Box, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
-import { getClusters } from '@/api/client'
+import { getClusters, type Cluster } from '@/api/client'
 
 interface ServiceRow {
   clusterId: string
@@ -12,7 +12,6 @@ interface ServiceRow {
   host: string
   port: number
   database?: string
-  username?: string
   healthy?: boolean
 }
 
@@ -22,191 +21,170 @@ export default function Services() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadServices()
+    const fetchClusters = async () => {
+      try {
+        const clusters = await getClusters()
+        const allServices: ServiceRow[] = []
+        
+        clusters.forEach((cluster: Cluster) => {
+          if (cluster.config?.services) {
+            Object.entries(cluster.config.services).forEach(([serviceName, config]: [string, any]) => {
+              allServices.push({
+                clusterId: cluster.id,
+                clusterName: cluster.name,
+                serviceName,
+                type: config.type,
+                host: config.host || 'N/A',
+                port: config.port || 0,
+                database: config.database,
+                healthy: config.healthy !== false,
+              })
+            })
+          }
+        })
+        
+        setServices(allServices)
+      } catch (error) {
+        toast.error('Failed to load services')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchClusters()
   }, [])
 
-  const loadServices = async () => {
-    try {
-      setLoading(true)
-      const clusters = await getClusters()
-      
-      // Flatten all services from all clusters
-      const allServices: ServiceRow[] = []
-      clusters.forEach((cluster) => {
-        if (cluster.services) {
-          cluster.services.forEach((service) => {
-            allServices.push({
-              clusterId: cluster.id,
-              clusterName: cluster.name,
-              serviceName: service.name,
-              type: service.type,
-              host: service.host,
-              port: service.port,
-              database: service.database,
-              username: service.username,
-              healthy: service.healthy,
-            })
-          })
-        }
-      })
-      
-      setServices(allServices)
-    } catch (error) {
-      toast.error('Failed to load services')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const getServiceIcon = (type: string) => {
-    switch (type) {
-      case 'redis':
-        return <Database className="w-5 h-5 text-red-500" />
+    switch (type.toLowerCase()) {
       case 'postgres':
-        return <Server className="w-5 h-5 text-[#FF5050]" />
+      case 'postgresql':
+        return <Database className="w-4 h-4 text-blue-400" />
+      case 'redis':
+        return <Database className="w-4 h-4 text-red-400" />
       case 'kafka':
-        return <MessageSquare className="w-5 h-5 text-purple-500" />
+        return <Box className="w-4 h-4 text-purple-400" />
       default:
-        return <Server className="w-5 h-5 text-gray-500" />
+        return <Server className="w-4 h-4 text-muted-foreground" />
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col">
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Services</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <h1 className="text-2xl font-semibold text-foreground">Services</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             View all services across clusters
           </p>
         </div>
-        <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {services.length} total service(s)
+        <div className="px-3 py-1.5 bg-muted/50 rounded-md">
+          <span className="text-sm text-muted-foreground">
+            {services.length} total service{services.length !== 1 ? 's' : ''}
           </span>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-[#FF5050] border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center py-16">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : services.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12">
-          <div className="flex flex-col items-center justify-center text-gray-400">
-            <Server className="w-16 h-16 mb-4 opacity-50" />
-            <h3 className="text-lg font-medium mb-2">No services found</h3>
-            <p className="text-sm text-center mb-6">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Server className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No services found</h3>
+            <p className="text-sm text-muted-foreground mb-6">
               Create a cluster with services to see them here
             </p>
             <button
               onClick={() => navigate('/clusters/create')}
-              className="px-4 py-2 bg-[#FF5050] text-white rounded-lg hover:bg-[#ed1515] transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
             >
               Create Cluster
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Service
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Cluster
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Host
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Port
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody>
                 {services.map((service, index) => (
                   <tr
                     key={`${service.clusterId}-${service.serviceName}-${index}`}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    className="border-b border-border hover:bg-accent/30 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-3">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2.5">
                         {getServiceIcon(service.type)}
                         <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          <div className="text-sm font-medium text-foreground">
                             {service.serviceName}
                           </div>
                           {service.database && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              DB: {service.database}
+                            <div className="text-xs text-muted-foreground">
+                              {service.database}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted/50 text-foreground">
                         {service.type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {service.clusterName}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                          {service.clusterId.slice(0, 8)}
-                        </div>
+                    <td className="px-4 py-3">
+                      <div className="text-sm text-foreground">{service.clusterName}</div>
+                      <div className="text-xs text-muted-foreground font-mono">{service.clusterId}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-mono text-muted-foreground">{service.host}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-mono text-foreground">{service.port}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${service.healthy ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <span className={`text-xs font-medium ${service.healthy ? 'text-green-500' : 'text-red-500'}`}>
+                          {service.healthy ? 'Healthy' : 'Unhealthy'}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-mono text-gray-900 dark:text-white">
-                        {service.host}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-mono text-gray-900 dark:text-white">
-                        {service.port}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {service.healthy === true ? (
-                        <span className="flex items-center space-x-1 text-green-600 dark:text-green-400">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span className="text-sm">Healthy</span>
-                        </span>
-                      ) : service.healthy === false ? (
-                        <span className="flex items-center space-x-1 text-red-600 dark:text-red-400">
-                          <XCircle className="w-4 h-4" />
-                          <span className="text-sm">Unhealthy</span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                          <Loader2 className="w-4 h-4" />
-                          <span className="text-sm">Unknown</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3">
                       <button
-                        onClick={() => navigate(`/clusters/${service.clusterId}`)}
-                        className="flex items-center space-x-1 text-[#FF5050] hover:text-[#ed1515] transition-colors"
+                        onClick={() => navigate(`/services/${service.clusterId}/${service.serviceName}`)}
+                        className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted/50 rounded-md transition-colors"
                       >
-                        <ExternalLink className="w-4 h-4" />
-                        <span className="text-sm">View Cluster</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>View</span>
                       </button>
                     </td>
                   </tr>

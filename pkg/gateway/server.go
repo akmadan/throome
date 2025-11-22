@@ -67,6 +67,15 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/clusters/{cluster_id}/health", s.handleClusterHealth).Methods("GET")
 	api.HandleFunc("/clusters/{cluster_id}/metrics", s.handleClusterMetrics).Methods("GET")
 
+	// Activity logs
+	api.HandleFunc("/activity", s.handleGetActivity).Methods("GET")
+	api.HandleFunc("/clusters/{cluster_id}/activity", s.handleGetClusterActivity).Methods("GET")
+	api.HandleFunc("/clusters/{cluster_id}/services/{service_name}/activity", s.handleGetServiceActivity).Methods("GET")
+
+	// Service management
+	api.HandleFunc("/clusters/{cluster_id}/services/{service_name}", s.handleGetServiceInfo).Methods("GET")
+	api.HandleFunc("/clusters/{cluster_id}/services/{service_name}/logs", s.handleGetServiceLogs).Methods("GET")
+
 	// Prometheus metrics endpoint
 	if s.config.Monitoring.Enabled {
 		s.router.Handle(s.config.Monitoring.MetricsPath, promhttp.Handler())

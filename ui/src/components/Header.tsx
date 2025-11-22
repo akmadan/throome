@@ -1,51 +1,78 @@
 import { Bell, Search, Moon, Sun } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Header() {
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    // Initialize from localStorage or default to dark mode
+    const saved = localStorage.getItem('throome-theme')
+    if (saved) {
+      return saved === 'dark'
+    }
+    // Default to dark mode (since we're using Docker Desktop dark theme)
+    return true
+  })
+
+  // Apply theme on mount
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [])
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
-    document.documentElement.classList.toggle('dark')
+    const newMode = !darkMode
+    setDarkMode(newMode)
+    
+    // Update DOM
+    if (newMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    
+    // Persist to localStorage
+    localStorage.setItem('throome-theme', newMode ? 'dark' : 'light')
   }
 
   return (
-    <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6">
+    <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4">
       {/* Search */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-md">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search clusters, services..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5050] dark:text-white"
+            placeholder="Search..."
+            className="w-full pl-9 pr-4 py-1.5 text-sm bg-muted/50 border border-transparent rounded-md focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-background text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2">
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleDarkMode}
-          className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
           aria-label="Toggle dark mode"
         >
-          {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
 
         {/* Notifications */}
         <button
-          className="relative p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="relative p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
           aria-label="Notifications"
         >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full"></span>
         </button>
 
         {/* User Avatar */}
-        <div className="w-8 h-8 bg-gradient-to-br from-[#FF5050] to-[#ff7070] rounded-full flex items-center justify-center">
-          <span className="text-xs font-medium text-white">AM</span>
+        <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center ml-2">
+          <span className="text-xs font-medium text-foreground">AM</span>
         </div>
       </div>
     </header>

@@ -60,12 +60,12 @@ services:
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-muted-foreground">
           Edit your cluster configuration in YAML format
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="flex items-center space-x-2 px-3 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
         >
           {copied ? (
             <>
@@ -88,16 +88,16 @@ services:
           onChange={(e) => !readOnly && handleYamlChange(e.target.value)}
           placeholder={exampleYaml}
           readOnly={readOnly}
-          className={`w-full h-96 px-4 py-3 font-mono text-sm border rounded-lg focus:ring-2 focus:ring-[#FF5050] focus:border-transparent bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white ${
+          className={`w-full h-96 px-4 py-3 font-mono text-sm border rounded-lg focus:ring-2 focus:ring-[#FF5050] focus:border-transparent bg-background text-foreground ${
             error
               ? 'border-red-500 dark:border-red-500'
-              : 'border-gray-300 dark:border-gray-600'
+              : 'border-border'
           } ${readOnly ? 'cursor-not-allowed opacity-75' : ''}`}
           spellCheck={false}
         />
         
         {/* Line numbers overlay (simple version) */}
-        <div className="absolute top-0 left-0 px-2 py-3 text-xs text-gray-400 pointer-events-none select-none font-mono">
+        <div className="absolute top-0 left-0 px-2 py-3 text-xs text-muted-foreground pointer-events-none select-none font-mono">
           {yamlText.split('\n').map((_, i) => (
             <div key={i} className="h-5">
               {i + 1}
@@ -108,7 +108,7 @@ services:
 
       {/* Error Message */}
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">
             <strong>YAML Parse Error:</strong> {error}
           </p>
@@ -116,7 +116,7 @@ services:
       )}
 
       {/* Help */}
-      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+      <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
         <h4 className="text-sm font-medium text-red-900 dark:text-red-300 mb-2">
           Configuration Format
         </h4>

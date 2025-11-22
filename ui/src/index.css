@@ -1,65 +1,225 @@
-@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #020617;
-    --card: #ffffff;
-    --card-foreground: #020617;
-    --popover: #ffffff;
-    --popover-foreground: #020617;
-    --primary: #FF5050;
-    --primary-foreground: #ffffff;
-    --secondary: #f0f5fa;
-    --secondary-foreground: #0f172a;
-    --muted: #f0f5fa;
-    --muted-foreground: #64748b;
-    --accent: #f0f5fa;
-    --accent-foreground: #0f172a;
-    --destructive: #f04438;
-    --destructive-foreground: #f8fafc;
-    --border: #e2e8f0;
-    --input: #e2e8f0;
-    --ring: #FF5050;
-    --radius: 0.5rem;
-  }
+/* ============================================
+   THROOME COLOR SYSTEM (Docker Desktop Style)
+   ============================================ */
 
-  .dark {
-    --background: #121212;
-    --foreground: #fafafa;
-    --card: #1a1a1a;
-    --card-foreground: #fafafa;
-    --popover: #121212;
-    --popover-foreground: #fafafa;
-    --primary: #FF5050;
-    --primary-foreground: #ffffff;
-    --secondary: #262626;
-    --secondary-foreground: #fafafa;
-    --muted: #262626;
-    --muted-foreground: #a6a6a6;
-    --accent: #262626;
-    --accent-foreground: #fafafa;
-    --destructive: #7f1d1d;
-    --destructive-foreground: #fafafa;
-    --border: #333333;
-    --input: #262626;
-    --ring: #FF5050;
-  }
+/* Light Theme Colors */
+:root {
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-accent: #e2e8f0;
+  --bg-accent-hover: #cbd5e1;
+  
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+  
+  /* Border Colors */
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --border-accent: #94a3b8;
+  
+  /* Interactive Colors */
+  --interactive-primary: #FF5050;
+  --interactive-primary-hover: #ed1515;
+  --interactive-secondary: #64748b;
+  --interactive-secondary-hover: #475569;
+  
+  /* Status Colors */
+  --success: #10b981;
+  --success-bg: #d1fae5;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+  --error: #ef4444;
+  --error-bg: #fee2e2;
+  --info: #3b82f6;
+  --info-bg: #dbeafe;
+  
+  /* Shadow Colors */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
+/* Dark Theme Colors (Docker Desktop Style) */
+.dark {
+  /* Background Colors */
+  --bg-darker: #0d1117;
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --bg-accent: #1f2937;
+  --bg-accent-hover: #374151;
+  
+  /* Text Colors */
+  --text-primary: #e6edf3;
+  --text-secondary: #c9d1d9;
+  --text-tertiary: #8b949e;
+  --text-muted: #6e7681;
+  --text-inverse: #0d1117;
+  
+  /* Border Colors */
+  --border-primary: #30363d;
+  --border-secondary: #3d444d;
+  --border-accent: #484f58;
+  
+  /* Interactive Colors */
+  --interactive-primary: #FF5050;
+  --interactive-primary-hover: #ff6b6b;
+  --interactive-secondary: #8b949e;
+  --interactive-secondary-hover: #c9d1d9;
+  
+  /* Status Colors */
+  --success: #3fb950;
+  --success-bg: #0d4524;
+  --warning: #d29922;
+  --warning-bg: #4e3200;
+  --error: #f85149;
+  --error-bg: #490f0b;
+  --info: #58a6ff;
+  --info-bg: #0d2d56;
+  
+  /* Shadow Colors */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* ============================================
+   TAILWIND INTEGRATION
+   ============================================ */
 @layer base {
+  :root {
+    --background: var(--bg-primary);
+    --foreground: var(--text-primary);
+    --card: var(--bg-secondary);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-secondary);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--interactive-primary);
+    --primary-foreground: var(--text-inverse);
+    --secondary: var(--bg-tertiary);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-tertiary);
+    --muted-foreground: var(--text-muted);
+    --accent: var(--bg-accent);
+    --accent-foreground: var(--text-primary);
+    --destructive: var(--error);
+    --destructive-foreground: var(--text-inverse);
+    --border: var(--border-primary);
+    --input: var(--bg-primary);
+    --ring: var(--interactive-primary);
+    --radius: 0.5rem;
+  }
+  
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
-    font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    font-family: 'Arimo', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-accent { background-color: var(--bg-accent); }
+.bg-accent-hover { background-color: var(--bg-accent-hover); }
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-muted { color: var(--text-muted); }
+.text-inverse { color: var(--text-inverse); }
+
+.border-primary { border-color: var(--border-primary); }
+.border-secondary { border-color: var(--border-secondary); }
+.border-accent { border-color: var(--border-accent); }
+
+.shadow-theme-sm { box-shadow: var(--shadow-sm); }
+.shadow-theme-md { box-shadow: var(--shadow-md); }
+.shadow-theme-lg { box-shadow: var(--shadow-lg); }
+
+/* Interactive States */
+.hover\:bg-secondary:hover { background-color: var(--bg-secondary); }
+.hover\:bg-tertiary:hover { background-color: var(--bg-tertiary); }
+.hover\:bg-accent-hover:hover { background-color: var(--bg-accent-hover); }
+.hover\:text-primary:hover { color: var(--text-primary); }
+.hover\:text-secondary:hover { color: var(--text-secondary); }
+.hover\:border-secondary:hover { border-color: var(--border-secondary); }
+
+/* Focus States */
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--interactive-primary);
+  --tw-ring-offset-color: var(--bg-primary);
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-accent);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}

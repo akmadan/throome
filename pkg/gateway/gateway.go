@@ -26,6 +26,8 @@ type Gateway struct {
 	collector      *monitor.Collector
 	healthChecker  *monitor.HealthChecker
 	provisioner    interface{} // Docker provisioner (interface for flexibility)
+	activityBuffer *monitor.ActivityBuffer
+	activityLogger *monitor.DefaultActivityLogger
 	mu             sync.RWMutex
 }
 
@@ -48,6 +50,10 @@ func NewGateway(clustersDir string) (*Gateway, error) {
 	// Create health checker (10s interval, 5s timeout, 3 failures threshold)
 	healthChecker := monitor.NewHealthChecker(10*time.Second, 5*time.Second, 3)
 
+	// Create activity buffer (store last 1000 activities)
+	activityBuffer := monitor.NewActivityBuffer(1000)
+	activityLogger := monitor.NewActivityLogger(activityBuffer).(*monitor.DefaultActivityLogger)
+
 	// Create Docker provisioner (optional - continues if Docker is not available)
 	var provisioner interface{}
 	// Provisioner will be initialized later to avoid import cycles
@@ -61,6 +67,8 @@ func NewGateway(clustersDir string) (*Gateway, error) {
 		collector:      collector,
 		healthChecker:  healthChecker,
 		provisioner:    provisioner,
+		activityBuffer: activityBuffer,
+		activityLogger: activityLogger,
 	}, nil
 }
 
@@ -114,6 +122,13 @@ func (g *Gateway) initializeCluster(ctx context.Context, clusterID string, confi
 				zap.Error(err),
 			)
 			continue
+		}
+
+		// Set activity logger if adapter supports it
+		if baseAdapter, ok := adapter.(interface {
+			SetActivityLogger(logger adapters.ActivityLogger, clusterID, serviceName string)
+		}); ok {
+			baseAdapter.SetActivityLogger(g.activityLogger, clusterID, serviceName)
 		}
 
 		// Connect to the service
@@ -187,6 +202,11 @@ func (g *Gateway) GetHealthChecker() *monitor.HealthChecker {
 // GetClusterManager returns the cluster manager
 func (g *Gateway) GetClusterManager() *cluster.Manager {
 	return g.clusterManager
+}
+
+// GetActivityBuffer returns the activity buffer
+func (g *Gateway) GetActivityBuffer() *monitor.ActivityBuffer {
+	return g.activityBuffer
 }
 
 // SetProvisioner sets the Docker provisioner
