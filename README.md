@@ -1,4 +1,4 @@
-![Throome](/images/text_logo.svg){ width=200 }
+<img src="images/text_logo.png" alt="Throome" width="200"/>
 
 > A lightweight, open-source gateway for unified backend infrastructure access with Docker container provisioning.
 
@@ -11,7 +11,7 @@ Throome provides a single gateway layer to access multiple infrastructure compon
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-![Docker Command to Run Throome](/images/docker_command.png)
+<img src="images/docker_command.png" alt="Docker Command to Run Throome" width="400"/>
 
 ---
 
