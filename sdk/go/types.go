@@ -36,7 +36,7 @@ type Service struct {
 
 // CreateClusterRequest represents a request to create a cluster
 type CreateClusterRequest struct {
-	Name     string                    `json:"name"`
+	Name     string                   `json:"name"`
 	Services map[string]ServiceConfig `json:"services"`
 }
 
@@ -91,19 +91,19 @@ type ServiceInfo struct {
 
 // ActivityLog represents an activity log entry
 type ActivityLog struct {
-	ID          string                 `json:"id"`
-	Timestamp   time.Time              `json:"timestamp"`
-	ClusterID   string                 `json:"cluster_id"`
-	ServiceName string                 `json:"service_name"`
-	ServiceType string                 `json:"service_type"`
-	Operation   string                 `json:"operation"`
-	Command     string                 `json:"command"`
-	Parameters  []interface{}          `json:"parameters"`
-	Duration    time.Duration          `json:"duration"`
-	Status      string                 `json:"status"`
-	Response    string                 `json:"response"`
-	Error       string                 `json:"error,omitempty"`
-	ClientInfo  map[string]string      `json:"client_info,omitempty"`
+	ID          string            `json:"id"`
+	Timestamp   time.Time         `json:"timestamp"`
+	ClusterID   string            `json:"cluster_id"`
+	ServiceName string            `json:"service_name"`
+	ServiceType string            `json:"service_type"`
+	Operation   string            `json:"operation"`
+	Command     string            `json:"command"`
+	Parameters  []interface{}     `json:"parameters"`
+	Duration    time.Duration     `json:"duration"`
+	Status      string            `json:"status"`
+	Response    string            `json:"response"`
+	Error       string            `json:"error,omitempty"`
+	ClientInfo  map[string]string `json:"client_info,omitempty"`
 }
 
 // ActivityFilters represents filters for activity logs
@@ -155,4 +155,3 @@ type QueuePublishRequest struct {
 	Topic   string `json:"topic"`
 	Message []byte `json:"message"`
 }
-

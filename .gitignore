@@ -65,6 +65,18 @@ ui/node_modules/
 ui/.next/
 ui/build/
 
+# SDK dependencies and build artifacts
+**/node_modules/
+sdk/nodejs/dist/
+sdk/python/dist/
+sdk/python/build/
+sdk/python/src/*.egg-info/
+sdk/python/.pytest_cache/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
 # Documentation build
 docs/_build/
 site/

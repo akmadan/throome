@@ -53,13 +53,13 @@ func main() {
 			},
 		},
 	}
-	
+
 	createResp, err := client.CreateCluster(ctx, createReq)
 	if err != nil {
 		log.Fatalf("Failed to create cluster: %v", err)
 	}
 	fmt.Printf("Created cluster: %s (%s)\n\n", createReq.Name, createResp.ClusterID)
-	
+
 	clusterID := createResp.ClusterID
 
 	// Wait for services to be ready
@@ -185,4 +185,3 @@ func main() {
 		fmt.Printf("Deleted cluster: %s\n", clusterID)
 	}
 }
-

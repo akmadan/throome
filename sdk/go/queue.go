@@ -25,4 +25,3 @@ func (q *QueueClient) Publish(ctx context.Context, topic string, message []byte)
 func (q *QueueClient) Subscribe(ctx context.Context, topic string, handler func([]byte) error) error {
 	return fmt.Errorf("subscribe not yet implemented in SDK - use direct Kafka consumer")
 }
-

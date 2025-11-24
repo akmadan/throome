@@ -47,4 +47,3 @@ func (c *CacheClient) Delete(ctx context.Context, key string) error {
 	path := fmt.Sprintf("/api/v1/clusters/%s/cache/delete", c.clusterClient.clusterID)
 	return c.clusterClient.client.request(ctx, "POST", path, req, nil)
 }
-

@@ -50,4 +50,3 @@ func (d *DBClient) QueryRow(ctx context.Context, query string, args ...interface
 
 	return rows[0], nil
 }
-
