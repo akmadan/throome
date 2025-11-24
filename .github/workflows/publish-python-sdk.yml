@@ -1,146 +1,134 @@
-# name: Publish Python SDK
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'sdk/python/**'
-#       - '.github/workflows/publish-python-sdk.yml'
-#   release:
-#     types: [created]
-#   workflow_dispatch:
-#     inputs:
-#       version:
-#         description: 'Version to publish (leave empty for setup.py version)'
-#         required: false
-#         type: string
+name: Publish Python SDK
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'sdk/python/**'
+      - '.github/workflows/publish-python-sdk.yml'
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty for setup.py version)'
+        required: false
+        type: string
 
-# jobs:
-#   publish:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: read
-#       id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#       - name: Setup Python
-#         uses: actions/setup-python@v5
-#         with:
-#           python-version: '3.11'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-#       - name: Install dependencies
-#         run: |
-#           python -m pip install --upgrade pip
-#           pip install build twine
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
 
-#       - name: Install package dependencies
-#         working-directory: sdk/python
-#         run: |
-#           pip install -e ".[dev]" || pip install requests
+      - name: Install package dependencies
+        working-directory: sdk/python
+        run: |
+          pip install -e ".[dev]" || pip install requests
 
-#       - name: Lint with black (if available)
-#         working-directory: sdk/python
-#         run: |
-#           pip install black
-#           black --check src/ || echo "Black formatting check failed (non-blocking)"
-#         continue-on-error: true
+      - name: Lint with black (if available)
+        working-directory: sdk/python
+        run: |
+          pip install black
+          black --check src/ || echo "Black formatting check failed (non-blocking)"
+        continue-on-error: true
 
-#       - name: Type check with mypy (if available)
-#         working-directory: sdk/python
-#         run: |
-#           pip install mypy
-#           mypy src/ || echo "MyPy type checking failed (non-blocking)"
-#         continue-on-error: true
+      - name: Type check with mypy (if available)
+        working-directory: sdk/python
+        run: |
+          pip install mypy
+          mypy src/ || echo "MyPy type checking failed (non-blocking)"
+        continue-on-error: true
 
-#       - name: Run tests (if available)
-#         working-directory: sdk/python
-#         run: |
-#           pip install pytest
-#           pytest tests/ || echo "No tests configured"
-#         continue-on-error: true
+      - name: Run tests (if available)
+        working-directory: sdk/python
+        run: |
+          pip install pytest
+          pytest tests/ || echo "No tests configured"
+        continue-on-error: true
 
-#       - name: Build package
-#         working-directory: sdk/python
-#         run: python -m build
+      - name: Build package
+        working-directory: sdk/python
+        run: python -m build
 
-#       - name: Check package
-#         working-directory: sdk/python
-#         run: twine check dist/*
+      - name: Check package
+        working-directory: sdk/python
+        run: twine check dist/*
 
-#       - name: Get package version
-#         id: get_version
-#         working-directory: sdk/python
-#         run: |
-#           VERSION=$(python -c "import sys; sys.path.insert(0, 'src'); from throome import __version__; print(__version__)")
-#           echo "version=$VERSION" >> $GITHUB_OUTPUT
-#           echo "Package version: $VERSION"
+      - name: Get package version
+        id: get_version
+        working-directory: sdk/python
+        run: |
+          VERSION=$(python -c "import sys; sys.path.insert(0, 'src'); from throome import __version__; print(__version__)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
 
-#       - name: Check if version exists on PyPI
-#         id: check_version
-#         run: |
-#           PACKAGE_NAME="throome-sdk"
-#           VERSION="${{ steps.get_version.outputs.version }}"
+      - name: Check if version exists on PyPI
+        id: check_version
+        run: |
+          PACKAGE_NAME="throome-sdk"
+          VERSION="${{ steps.get_version.outputs.version }}"
           
-#           if pip index versions "$PACKAGE_NAME" 2>/dev/null | grep -q "$VERSION"; then
-#             echo "exists=true" >> $GITHUB_OUTPUT
-#             echo "Version $VERSION already exists on PyPI"
-#           else
-#             echo "exists=false" >> $GITHUB_OUTPUT
-#             echo "Version $VERSION does not exist on PyPI"
-#           fi
+          if pip index versions "$PACKAGE_NAME" 2>/dev/null | grep -q "$VERSION"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version $VERSION already exists on PyPI"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version $VERSION does not exist on PyPI"
+          fi
 
-#       - name: Publish to TestPyPI (dry-run)
-#         if: github.event_name == 'push' && steps.check_version.outputs.exists == 'false'
-#         working-directory: sdk/python
-#         run: |
-#           echo "Would publish to TestPyPI first for validation"
-#           echo "Uncomment the line below to enable TestPyPI publishing"
-#           # twine upload --repository testpypi dist/* --skip-existing
-#         env:
-#           TWINE_USERNAME: __token__
-#           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-#         continue-on-error: true
+      - name: Publish to PyPI
+        if: steps.check_version.outputs.exists == 'false'
+        working-directory: sdk/python
+        run: twine upload dist/* --skip-existing
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
-#       - name: Publish to PyPI
-#         if: steps.check_version.outputs.exists == 'false'
-#         working-directory: sdk/python
-#         run: twine upload dist/* --skip-existing
-#         env:
-#           TWINE_USERNAME: __token__
-#           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 🐍 Python SDK Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** \`throome-sdk\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.get_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_version.outputs.exists }}" == "false" ]; then
+            echo "✅ **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Install with:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "pip install throome-sdk" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Status:** Skipped (version already exists)" >> $GITHUB_STEP_SUMMARY
+          fi
 
-#       - name: Create summary
-#         if: always()
-#         run: |
-#           echo "## 🐍 Python SDK Publish Summary" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "**Package:** \`throome-sdk\`" >> $GITHUB_STEP_SUMMARY
-#           echo "**Version:** \`${{ steps.get_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           if [ "${{ steps.check_version.outputs.exists }}" == "false" ]; then
-#             echo "✅ **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
-#             echo "" >> $GITHUB_STEP_SUMMARY
-#             echo "Install with:" >> $GITHUB_STEP_SUMMARY
-#             echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-#             echo "pip install throome-sdk" >> $GITHUB_STEP_SUMMARY
-#             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-#           else
-#             echo "⏭️ **Status:** Skipped (version already exists)" >> $GITHUB_STEP_SUMMARY
-#           fi
-
-#       - name: Notify on failure
-#         if: failure()
-#         run: |
-#           echo "## ❌ Python SDK Publish Failed" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "**Common issues:**" >> $GITHUB_STEP_SUMMARY
-#           echo "- PYPI_TOKEN secret not configured" >> $GITHUB_STEP_SUMMARY
-#           echo "- Build errors" >> $GITHUB_STEP_SUMMARY
-#           echo "- Version already published" >> $GITHUB_STEP_SUMMARY
-#           echo "- Package metadata issues" >> $GITHUB_STEP_SUMMARY
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## ❌ Python SDK Publish Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Common issues:**" >> $GITHUB_STEP_SUMMARY
+          echo "- PYPI_TOKEN secret not configured" >> $GITHUB_STEP_SUMMARY
+          echo "- Build errors" >> $GITHUB_STEP_SUMMARY
+          echo "- Version already published" >> $GITHUB_STEP_SUMMARY
+          echo "- Package metadata issues" >> $GITHUB_STEP_SUMMARY
 
