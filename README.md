@@ -1,6 +1,6 @@
-# Throome
+<img src="images/text_logo.png" alt="Throome" width="200"/>
 
-> A lightweight, open-source Go gateway for unified backend infrastructure access with Docker container provisioning.
+> A lightweight, open-source gateway for unified backend infrastructure access with Docker container provisioning.
 
 Throome provides a single gateway layer to access multiple infrastructure components (Redis, PostgreSQL, Kafka) via cluster-based management. It eliminates direct integration complexity by providing unified SDKs and automatic service provisioning.
 
@@ -11,6 +11,8 @@ Throome provides a single gateway layer to access multiple infrastructure compon
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+<img src="images/docker_command.png" alt="Docker Command to Run Throome" width="400"/>
+
 ---
 
 ## What is Throome?
@@ -20,7 +22,7 @@ Throome is a gateway service that:
 1. **Provisions Infrastructure**: Automatically spins up Docker containers for Redis, PostgreSQL, and Kafka
 2. **Manages Clusters**: Groups related services into logical clusters with unique identifiers
 3. **Routes Requests**: Handles connection pooling, health checks, and intelligent routing strategies
-4. **Provides SDKs**: Offers unified Go SDK for accessing all services through a single interface
+4. **Provides SDKs**: Offers unified SDKs (Go, Node.js/TypeScript, Python) for accessing all services
 5. **Monitors Services**: Built-in health checks and metrics collection via Prometheus
 
 ### Core Capabilities
@@ -385,34 +387,170 @@ DELETE /api/v1/clusters/{cluster_id}
 
 ---
 
-## Using the Go SDK
+## SDKs
+
+Throome provides official SDKs for Go, Node.js/TypeScript, and Python with comprehensive API coverage including cluster management, service monitoring, activity logging, and direct data access.
+
+### Go SDK
+
+**Installation**
+
+```bash
+go get github.com/akmadan/throome/sdk/go
+```
+
+**Quick Example**
 
 ```go
 package main
 
 import (
     "context"
-    "fmt"
-    "github.com/akmadan/throome/pkg/sdk"
+    "log"
+    
+    throome "github.com/akmadan/throome/sdk/go"
 )
 
 func main() {
-    // Initialize SDK client
-    client := sdk.NewClient("http://localhost:9000", "my-cluster-id")
+    // Initialize client
+    client := throome.NewClient("http://localhost:9000")
+    ctx := context.Background()
+
+    // Create a cluster
+    createResp, err := client.CreateCluster(ctx, throome.CreateClusterRequest{
+        Name: "my-cluster",
+        Services: map[string]throome.ServiceConfig{
+            "redis-1": {Type: "redis", Port: 6379},
+            "postgres-1": {Type: "postgres", Port: 5432, Database: "mydb"},
+        },
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Work with cluster
+    cluster := client.Cluster(createResp.ClusterID)
     
-    // Redis operations
-    err := client.Redis().Set(context.Background(), "key", "value")
-    val, err := client.Redis().Get(context.Background(), "key")
+    // Cache operations
+    cache := cluster.Cache()
+    cache.Set(ctx, "user:123", "John Doe", 60*time.Second)
+    value, _ := cache.Get(ctx, "user:123")
     
-    // PostgreSQL operations
-    rows, err := client.Postgres().Query(context.Background(), 
-        "SELECT * FROM users WHERE id = $1", 123)
+    // Database operations
+    db := cluster.DB()
+    db.Execute(ctx, "CREATE TABLE users (id SERIAL, name VARCHAR(100))")
+    rows, _ := db.Query(ctx, "SELECT * FROM users")
     
-    // Kafka operations
-    err = client.Kafka().Publish(context.Background(), 
-        "my-topic", []byte("message"))
+    // Get service logs
+    logs, _ := cluster.Service("redis-1").GetLogs(ctx, throome.LogOptions{Tail: 100})
 }
 ```
+
+[Full Go SDK Documentation →](sdk/go/README.md) | [Examples →](sdk/go/examples/)
+
+### Node.js/TypeScript SDK
+
+**Installation**
+
+```bash
+npm install @throome/sdk
+```
+
+**Quick Example**
+
+```typescript
+import { ThroomClient, ServiceConfig } from '@throome/sdk';
+
+const client = new ThroomClient({ baseURL: 'http://localhost:9000' });
+
+async function main() {
+  // Create a cluster
+  const services: Record<string, ServiceConfig> = {
+    'redis-1': { type: 'redis', port: 6379 },
+    'postgres-1': { type: 'postgres', port: 5432, database: 'mydb' },
+  };
+
+  const createResp = await client.createCluster({
+    name: 'my-cluster',
+    services,
+  });
+
+  // Work with cluster
+  const cluster = client.cluster(createResp.cluster_id);
+
+  // Cache operations
+  const cache = cluster.cache();
+  await cache.set('user:123', 'John Doe', { expiration: 60 });
+  const value = await cache.get('user:123');
+
+  // Database operations
+  const db = cluster.db();
+  await db.execute('CREATE TABLE users (id SERIAL, name VARCHAR(100))');
+  const rows = await db.query('SELECT * FROM users');
+
+  // Get service logs
+  const logs = await cluster.service('redis-1').getLogs({ tail: 100 });
+}
+
+main().catch(console.error);
+```
+
+[Full Node.js SDK Documentation →](sdk/nodejs/README.md) | [Examples →](sdk/nodejs/examples/)
+
+### Python SDK
+
+**Installation**
+
+```bash
+pip install throome-sdk
+```
+
+**Quick Example**
+
+```python
+from throome import ThroomClient, ServiceConfig
+
+client = ThroomClient(base_url="http://localhost:9000")
+
+# Create a cluster
+services = {
+    "redis-1": ServiceConfig(type="redis", port=6379),
+    "postgres-1": ServiceConfig(type="postgres", port=5432, database="mydb"),
+}
+
+create_resp = client.create_cluster(name="my-cluster", services=services)
+
+# Work with cluster
+cluster = client.cluster(create_resp.cluster_id)
+
+# Cache operations
+cache = cluster.cache()
+cache.set("user:123", "John Doe", expiration=60)
+value = cache.get("user:123")
+
+# Database operations
+db = cluster.db()
+db.execute("CREATE TABLE users (id SERIAL, name VARCHAR(100))")
+rows = db.query("SELECT * FROM users")
+
+# Get service logs
+logs = cluster.service("redis-1").get_logs(options=LogOptions(tail=100))
+```
+
+[Full Python SDK Documentation →](sdk/python/README.md) | [Examples →](sdk/python/examples/)
+
+### SDK Features
+
+All SDKs support:
+
+- **Cluster Management**: Create, list, get, and delete clusters
+- **Health Monitoring**: Check gateway and cluster health status
+- **Activity Logging**: View detailed logs of all service interactions
+- **Service Operations**: Get service info and Docker container logs
+- **Database Client**: Execute SQL queries and transactions
+- **Cache Client**: Redis operations (GET, SET, DELETE, TTL)
+- **Queue Client**: Publish messages to Kafka topics
+- **Type Safety**: Full type definitions (Go, TypeScript, Python type hints)
 
 ---
 
@@ -498,3 +636,4 @@ Licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
 - Discussions: [GitHub Discussions](https://github.com/akmadan/throome/discussions)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
 - Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+- SDK Publishing: [SDK_PUBLISHING.md](SDK_PUBLISHING.md)
