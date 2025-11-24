@@ -5,11 +5,11 @@ Official Node.js and TypeScript SDK for Throome - Universal Gateway for Modern A
 ## Installation
 
 ```bash
-npm install @throome/sdk
+npm install throome-sdk
 # or
-yarn add @throome/sdk
+yarn add throome-sdk
 # or
-pnpm add @throome/sdk
+pnpm add throome-sdk
 ```
 
 ## Quick Start
@@ -17,7 +17,7 @@ pnpm add @throome/sdk
 ### JavaScript
 
 ```javascript
-const { ThroomClient } = require('@throome/sdk');
+const { ThroomClient } = require('throome-sdk');
 
 const client = new ThroomClient({ baseURL: 'http://localhost:9000' });
 
@@ -35,7 +35,7 @@ main().catch(console.error);
 ### TypeScript
 
 ```typescript
-import { ThroomClient, ServiceConfig } from '@throome/sdk';
+import { ThroomClient, ServiceConfig } from 'throome-sdk';
 
 const client = new ThroomClient({ baseURL: 'http://localhost:9000' });
 
@@ -189,7 +189,7 @@ import type {
   HealthResponse,
   ActivityLog,
   // ... and more
-} from '@throome/sdk';
+} from 'throome-sdk';
 ```
 
 ## License

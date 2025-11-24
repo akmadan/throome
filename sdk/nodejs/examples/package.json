@@ -6,7 +6,7 @@
     "start": "ts-node index.ts"
   },
   "dependencies": {
-    "@throome/sdk": "file:../"
+    "throome-sdk": "file:../"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

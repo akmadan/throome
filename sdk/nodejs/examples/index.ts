@@ -1,4 +1,4 @@
-import { ThroomClient, ServiceConfig } from '@throome/sdk';
+import { ThroomClient, ServiceConfig } from 'throome-sdk';
 
 async function main() {
   // Initialize the Throome client

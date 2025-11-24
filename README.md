@@ -453,13 +453,13 @@ func main() {
 **Installation**
 
 ```bash
-npm install @throome/sdk
+npm install throome-sdk
 ```
 
 **Quick Example**
 
 ```typescript
-import { ThroomClient, ServiceConfig } from '@throome/sdk';
+import { ThroomClient, ServiceConfig } from 'throome-sdk';
 
 const client = new ThroomClient({ baseURL: 'http://localhost:9000' });
 
