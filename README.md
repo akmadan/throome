@@ -11,6 +11,15 @@ Throome provides a single gateway layer to access multiple infrastructure compon
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+### SDKs
+
+[![npm version](https://img.shields.io/npm/v/throome-sdk?label=npm&logo=npm&color=CB3837)](https://www.npmjs.com/package/throome-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/throome-sdk?logo=npm)](https://www.npmjs.com/package/throome-sdk)
+[![PyPI version](https://img.shields.io/pypi/v/throome-sdk?label=pypi&logo=pypi&color=3775A9)](https://pypi.org/project/throome-sdk/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/throome-sdk?logo=python)](https://pypi.org/project/throome-sdk/)
+[![Go Reference](https://pkg.go.dev/badge/github.com/akmadan/throome/sdk/go.svg)](https://pkg.go.dev/github.com/akmadan/throome/sdk/go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/akmadan/throome/sdk/go)](https://goreportcard.com/report/github.com/akmadan/throome/sdk/go)
+
 <img src="images/docker_command.png" alt="Docker Command to Run Throome" width="400"/>
 
 ---
