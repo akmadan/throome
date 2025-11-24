@@ -78,7 +78,7 @@ jobs:
         working-directory: sdk/nodejs
         run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
 
       - name: Create summary
         if: always()
@@ -107,7 +107,7 @@ jobs:
           echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Common issues:**" >> $GITHUB_STEP_SUMMARY
-          echo "- NPM_TOKEN secret not configured" >> $GITHUB_STEP_SUMMARY
+          echo "- NODE_TOKEN secret not configured" >> $GITHUB_STEP_SUMMARY
           echo "- Build errors" >> $GITHUB_STEP_SUMMARY
           echo "- Version already published" >> $GITHUB_STEP_SUMMARY
 
