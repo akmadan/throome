@@ -31,11 +31,12 @@ export interface CreateClusterRequest {
 
 export interface ServiceConfig {
   type: string;
-  host?: string;
-  port: number;
-  username?: string;
-  password?: string;
-  database?: string;
+  provision: boolean; // If true, Throome provisions a new Docker container; if false, connects to existing service
+  host?: string; // Required when provision is false
+  port: number; // Required when provision is false
+  username?: string; // Required for databases when provision is false
+  password?: string; // Required for databases when provision is false
+  database?: string; // Required for databases when provision is false
 }
 
 export interface CreateClusterResponse {

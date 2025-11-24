@@ -42,12 +42,13 @@ type CreateClusterRequest struct {
 
 // ServiceConfig represents service configuration
 type ServiceConfig struct {
-	Type     string `json:"type"`
-	Host     string `json:"host,omitempty"`
-	Port     int    `json:"port"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-	Database string `json:"database,omitempty"`
+	Type      string `json:"type"`
+	Provision bool   `json:"provision"`          // If true, Throome provisions a new Docker container; if false, connects to existing service
+	Host      string `json:"host,omitempty"`     // Required when Provision is false
+	Port      int    `json:"port"`               // Required when Provision is false
+	Username  string `json:"username,omitempty"` // Required for databases when Provision is false
+	Password  string `json:"password,omitempty"` // Required for databases when Provision is false
+	Database  string `json:"database,omitempty"` // Required for databases when Provision is false
 }
 
 // CreateClusterResponse represents the response from creating a cluster

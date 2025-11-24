@@ -19,7 +19,8 @@ type Config struct {
 
 // ServiceConfig represents configuration for a single infrastructure service
 type ServiceConfig struct {
-	Type        string                 `yaml:"type" json:"type"` // postgres, redis, kafka, etc.
+	Type        string                 `yaml:"type" json:"type"`           // postgres, redis, kafka, etc.
+	Provision   bool                   `yaml:"provision" json:"provision"` // If true, Throome provisions a new Docker container; if false, connects to existing service
 	Host        string                 `yaml:"host" json:"host"`
 	Port        int                    `yaml:"port" json:"port"`
 	Username    string                 `yaml:"username,omitempty" json:"username,omitempty"`

@@ -217,10 +217,27 @@ func (s *Server) handleCreateCluster(w http.ResponseWriter, r *http.Request) {
 
 	// Provision services with Docker if provisioner is available
 	if s.provisioner != nil {
-		logger.Info("Provisioning services with Docker", zap.Int("count", len(clusterConfig.Services)))
+		logger.Info("Processing services", zap.Int("total", len(clusterConfig.Services)))
 
 		for serviceName, serviceConfig := range clusterConfig.Services {
-			// Provision the service
+			// Check if service should be provisioned or if it's an existing remote service
+			if !serviceConfig.Provision {
+				// Using existing remote service - skip provisioning
+				logger.Info("Using existing remote service",
+					zap.String("service", serviceName),
+					zap.String("type", serviceConfig.Type),
+					zap.String("host", serviceConfig.Host),
+					zap.Int("port", serviceConfig.Port),
+				)
+				continue
+			}
+
+			// Provision the service with Docker
+			logger.Info("Provisioning new service",
+				zap.String("service", serviceName),
+				zap.String("type", serviceConfig.Type),
+			)
+
 			container, err := s.provisioner.ProvisionService(r.Context(), serviceName, &serviceConfig)
 			if err != nil {
 				// Cleanup any already provisioned containers

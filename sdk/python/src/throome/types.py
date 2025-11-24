@@ -34,11 +34,12 @@ class ServiceConfig:
     """Service configuration for cluster creation"""
 
     type: str
+    provision: bool  # If True, Throome provisions a new Docker container; if False, connects to existing service
     port: int
-    host: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    database: Optional[str] = None
+    host: Optional[str] = None  # Required when provision is False
+    username: Optional[str] = None  # Required for databases when provision is False
+    password: Optional[str] = None  # Required for databases when provision is False
+    database: Optional[str] = None  # Required for databases when provision is False
 
 
 @dataclass

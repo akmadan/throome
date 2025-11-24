@@ -11,6 +11,7 @@ interface ServiceNode {
   id: string
   name: string
   type: 'redis' | 'postgres' | 'kafka'
+  provision: boolean // true = auto-provision Docker container, false = connect to existing service
   host: string
   port: number
   username?: string
@@ -30,6 +31,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
       id: name,
       name,
       type: svc.type,
+      provision: svc.provision !== undefined ? svc.provision : true, // default to true for backward compatibility
       host: svc.host,
       port: svc.port,
       username: svc.username,
@@ -58,6 +60,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
       id: `${type}-${Date.now()}`,
       name: `${type}-${count + 1}`,
       type,
+      provision: true, // default to provisioning new containers
       host: 'localhost',
       port,
       username: type === 'postgres' ? 'postgres' : undefined,
@@ -94,6 +97,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
     const servicesConfig = servicesList.reduce((acc, service) => {
       acc[service.name] = {
         type: service.type,
+        provision: service.provision,
         host: service.host,
         port: service.port,
         ...(service.username && { username: service.username }),
@@ -289,6 +293,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                   id: `${selectedService.type}-${Date.now()}`,
                   name: `${selectedService.type}-${count + 1}`,
                   type: selectedService.type,
+                  provision: selectedService.provision,
                   host: selectedService.host,
                   port: maxPort + 1,
                   username: selectedService.username,
@@ -316,27 +321,78 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
               <input
                 type="text"
                 value={selectedService.name}
-                onChange={(e) => !readOnly && !readOnly && updateService(selectedService.id, { name: e.target.value })}
+                onChange={(e) => !readOnly && updateService(selectedService.id, { name: e.target.value })}
                 readOnly={readOnly}
                 className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${readOnly ? 'cursor-not-allowed opacity-75' : ''}`}
               />
             </div>
 
+            {/* Provision Toggle */}
+            <div className="p-4 bg-card border border-border rounded-lg">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1">
+                    Service Provisioning
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {selectedService.provision 
+                      ? 'Throome will provision a new Docker container for this service'
+                      : 'Connect to an existing remote service (AWS RDS, ElastiCache, etc.)'
+                    }
+                  </p>
+                </div>
+                {!readOnly && (
+                  <button
+                    onClick={() => updateService(selectedService.id, { provision: !selectedService.provision })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      selectedService.provision ? 'bg-[#FF5050]' : 'bg-border'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        selectedService.provision ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                )}
+              </div>
+              <div className="mt-2 text-xs">
+                <span className={`inline-flex items-center px-2 py-1 rounded-md ${
+                  selectedService.provision 
+                    ? 'bg-success/10 text-success' 
+                    : 'bg-warning/10 text-warning'
+                }`}>
+                  {selectedService.provision ? '🚀 Auto-provision new container' : '🔗 Connect to existing service'}
+                </span>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
                 Host
+                {!selectedService.provision && <span className="text-error ml-1">*</span>}
               </label>
               <input
                 type="text"
                 value={selectedService.host}
-                onChange={(e) => !readOnly && !readOnly && updateService(selectedService.id, { host: e.target.value })}
-                className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${readOnly ? "cursor-not-allowed opacity-75" : ""}`}
+                onChange={(e) => !readOnly && updateService(selectedService.id, { host: e.target.value })}
+                readOnly={readOnly || selectedService.provision}
+                placeholder={selectedService.provision ? "Auto-assigned by Docker" : "e.g., my-db.us-east-1.rds.amazonaws.com"}
+                className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${
+                  readOnly || selectedService.provision ? "cursor-not-allowed opacity-50" : ""
+                }`}
               />
+              {!selectedService.provision && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter the hostname or IP of your existing service
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
                 Port
+                {!selectedService.provision && <span className="text-error ml-1">*</span>}
               </label>
               <input
                 type="number"
@@ -344,11 +400,19 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                 onChange={(e) => !readOnly &&
                   updateService(selectedService.id, { port: parseInt(e.target.value) })
                 }
-                className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${readOnly ? "cursor-not-allowed opacity-75" : ""}`}
+                readOnly={readOnly || selectedService.provision}
+                className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${
+                  readOnly || selectedService.provision ? "cursor-not-allowed opacity-50" : ""
+                }`}
               />
-              {!readOnly && services.filter(s => s.id !== selectedService.id && s.port === selectedService.port).length > 0 && (
+              {!readOnly && !selectedService.provision && services.filter(s => s.id !== selectedService.id && s.port === selectedService.port).length > 0 && (
                 <p className="text-xs text-error mt-1">
                   ⚠️ Port conflict detected! Another service uses this port.
+                </p>
+              )}
+              {selectedService.provision && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Port is auto-assigned and incremented for multiple instances
                 </p>
               )}
             </div>
@@ -358,6 +422,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
                     Username
+                    {!selectedService.provision && <span className="text-error ml-1">*</span>}
                   </label>
                   <input
                     type="text"
@@ -365,6 +430,8 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                     onChange={(e) => !readOnly &&
                       updateService(selectedService.id, { username: e.target.value })
                     }
+                    readOnly={readOnly}
+                    placeholder={!selectedService.provision ? "Database username" : "postgres"}
                     className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${readOnly ? "cursor-not-allowed opacity-75" : ""}`}
                   />
                 </div>
@@ -372,6 +439,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
                     Password
+                    {!selectedService.provision && <span className="text-error ml-1">*</span>}
                   </label>
                   <input
                     type="password"
@@ -379,6 +447,8 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                     onChange={(e) => !readOnly &&
                       updateService(selectedService.id, { password: e.target.value })
                     }
+                    readOnly={readOnly}
+                    placeholder={!selectedService.provision ? "Database password" : "password"}
                     className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${readOnly ? "cursor-not-allowed opacity-75" : ""}`}
                   />
                 </div>
@@ -386,6 +456,7 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
                     Database
+                    {!selectedService.provision && <span className="text-error ml-1">*</span>}
                   </label>
                   <input
                     type="text"
@@ -393,6 +464,8 @@ export default function CanvasEditor({ config, onChange, readOnly = false }: Can
                     onChange={(e) => !readOnly &&
                       updateService(selectedService.id, { database: e.target.value })
                     }
+                    readOnly={readOnly}
+                    placeholder={!selectedService.provision ? "Database name" : `postgres_db_${services.filter(s => s.type === 'postgres').indexOf(selectedService) + 1}`}
                     className={`w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-[#FF5050] bg-input text-foreground text-sm ${readOnly ? "cursor-not-allowed opacity-75" : ""}`}
                   />
                 </div>
