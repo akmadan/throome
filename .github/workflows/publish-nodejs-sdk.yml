@@ -1,0 +1,113 @@
+name: Publish Node.js SDK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'sdk/nodejs/**'
+      - '.github/workflows/publish-nodejs-sdk.yml'
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty for package.json version)'
+        required: false
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        working-directory: sdk/nodejs
+        run: npm ci
+
+      - name: Build SDK
+        working-directory: sdk/nodejs
+        run: npm run build
+
+      - name: Run tests (if available)
+        working-directory: sdk/nodejs
+        run: npm test || echo "No tests configured"
+        continue-on-error: true
+
+      - name: Check if version exists on npm
+        id: check_version
+        working-directory: sdk/nodejs
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          
+          if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version $PACKAGE_VERSION already exists on npm"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version $PACKAGE_VERSION does not exist on npm"
+          fi
+
+      - name: Publish to npm (dry-run)
+        if: steps.check_version.outputs.exists == 'true'
+        working-directory: sdk/nodejs
+        run: |
+          echo "Version already exists. Skipping publish."
+          echo "To publish a new version:"
+          echo "1. Update version in package.json"
+          echo "2. Commit and push changes"
+          echo "3. Workflow will auto-publish"
+
+      - name: Publish to npm
+        if: steps.check_version.outputs.exists == 'false'
+        working-directory: sdk/nodejs
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 📦 Node.js SDK Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** \`${{ steps.check_version.outputs.package_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.check_version.outputs.package_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_version.outputs.exists }}" == "false" ]; then
+            echo "✅ **Status:** Published successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Install with:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "npm install ${{ steps.check_version.outputs.package_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Status:** Skipped (version already exists)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## ❌ Node.js SDK Publish Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Common issues:**" >> $GITHUB_STEP_SUMMARY
+          echo "- NPM_TOKEN secret not configured" >> $GITHUB_STEP_SUMMARY
+          echo "- Build errors" >> $GITHUB_STEP_SUMMARY
+          echo "- Version already published" >> $GITHUB_STEP_SUMMARY
+

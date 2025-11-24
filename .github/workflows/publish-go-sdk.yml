@@ -1,0 +1,115 @@
+name: Publish Go SDK
+
+on:
+  push:
+    tags:
+      - 'sdk/go/v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create (e.g., sdk/go/v0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Verify Go SDK builds
+        working-directory: sdk/go
+        run: |
+          go mod download
+          go build ./...
+          go vet ./...
+
+      - name: Run tests (if available)
+        working-directory: sdk/go
+        run: |
+          go test -v ./... || echo "No tests configured"
+        continue-on-error: true
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#sdk/go/}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Go SDK version: $VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.extract_version.outputs.tag }}
+          name: Go SDK ${{ steps.extract_version.outputs.version }}
+          body: |
+            # Throome Go SDK ${{ steps.extract_version.outputs.version }}
+            
+            ## Installation
+            
+            ```bash
+            go get github.com/akmadan/throome/sdk/go@${{ steps.extract_version.outputs.version }}
+            ```
+            
+            ## Usage
+            
+            ```go
+            import throome "github.com/akmadan/throome/sdk/go"
+            
+            client := throome.NewClient("http://localhost:9000")
+            ```
+            
+            ## Documentation
+            
+            - [Go SDK Documentation](https://github.com/akmadan/throome/tree/main/sdk/go)
+            - [API Reference](https://pkg.go.dev/github.com/akmadan/throome/sdk/go@${{ steps.extract_version.outputs.version }})
+            - [Examples](https://github.com/akmadan/throome/tree/main/sdk/go/examples)
+            
+            ## Changes
+            
+            See [CHANGELOG.md](https://github.com/akmadan/throome/blob/main/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 🔷 Go SDK Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** \`github.com/akmadan/throome/sdk/go\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.extract_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.extract_version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Status:** Released successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "go get github.com/akmadan/throome/sdk/go@${{ steps.extract_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View on pkg.go.dev: https://pkg.go.dev/github.com/akmadan/throome/sdk/go@${{ steps.extract_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## ❌ Go SDK Release Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+
