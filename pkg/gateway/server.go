@@ -1,10 +1,12 @@
 package gateway
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -75,6 +77,15 @@ func (s *Server) setupRoutes() {
 	// Service management
 	api.HandleFunc("/clusters/{cluster_id}/services/{service_name}", s.handleGetServiceInfo).Methods("GET")
 	api.HandleFunc("/clusters/{cluster_id}/services/{service_name}/logs", s.handleGetServiceLogs).Methods("GET")
+
+	// Database operation routes
+	api.HandleFunc("/clusters/{cluster_id}/db/execute", s.handleDBExecute).Methods("POST")
+	api.HandleFunc("/clusters/{cluster_id}/db/query", s.handleDBQuery).Methods("POST")
+
+	// Cache operation routes
+	api.HandleFunc("/clusters/{cluster_id}/cache/get", s.handleCacheGet).Methods("POST")
+	api.HandleFunc("/clusters/{cluster_id}/cache/set", s.handleCacheSet).Methods("POST")
+	api.HandleFunc("/clusters/{cluster_id}/cache/delete", s.handleCacheDelete).Methods("POST")
 
 	// Prometheus metrics endpoint
 	if s.config.Monitoring.Enabled {
@@ -257,9 +268,14 @@ func (s *Server) handleCreateCluster(w http.ResponseWriter, r *http.Request) {
 			// Update config with container ID
 			svc := clusterConfig.Services[serviceName]
 			svc.ContainerID = container.ContainerID
-			// Use host.docker.internal to connect from inside Docker container to host services
-			// This special DNS name resolves to the host machine's IP
-			svc.Host = "host.docker.internal"
+			// Set the host based on where Throome is running
+			// If Throome is in Docker, use host.docker.internal to reach host containers
+			// If Throome is running natively, use localhost
+			if s.isRunningInDocker() {
+				svc.Host = "host.docker.internal"
+			} else {
+				svc.Host = "localhost"
+			}
 			clusterConfig.Services[serviceName] = svc
 
 			logger.Info("Service provisioned",
@@ -536,6 +552,13 @@ func (s *Server) convertJSONToClusterConfig(name string, jsonConfig map[string]i
 			return nil, fmt.Errorf("service %s: type is required", serviceName)
 		}
 
+		// Provision - default to true if not specified (for backward compatibility)
+		if provision, ok := serviceMap["provision"].(bool); ok {
+			serviceConfig.Provision = provision
+		} else {
+			serviceConfig.Provision = true // Default to provisioning new containers
+		}
+
 		// Host
 		if host, ok := serviceMap["host"].(string); ok {
 			serviceConfig.Host = host
@@ -567,4 +590,19 @@ func (s *Server) convertJSONToClusterConfig(name string, jsonConfig map[string]i
 	}
 
 	return config, nil
+}
+
+// isRunningInDocker checks if Throome is running inside a Docker container
+func (s *Server) isRunningInDocker() bool {
+	// Check for /.dockerenv file (common indicator)
+	if _, err := os.Stat("/.dockerenv"); err == nil {
+		return true
+	}
+
+	// Check cgroup file for docker
+	if data, err := os.ReadFile("/proc/self/cgroup"); err == nil {
+		return bytes.Contains(data, []byte("docker")) || bytes.Contains(data, []byte("containerd"))
+	}
+
+	return false
 }

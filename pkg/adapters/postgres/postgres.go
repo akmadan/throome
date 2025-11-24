@@ -119,7 +119,19 @@ func (p *PostgresAdapter) HealthCheck(ctx context.Context) (*adapters.HealthStat
 func (p *PostgresAdapter) Execute(ctx context.Context, query string, args ...interface{}) (adapters.Result, error) {
 	start := time.Now()
 	tag, err := p.pool.Exec(ctx, query, args...)
-	p.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	p.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := query
+	if len(args) > 0 {
+		command = fmt.Sprintf("%s [args: %v]", query, args)
+	}
+	response := ""
+	if err == nil {
+		response = fmt.Sprintf("Rows affected: %d", tag.RowsAffected())
+	}
+	p.LogActivity("EXECUTE", command, duration, err, response)
 
 	if err != nil {
 		return nil, err
@@ -132,7 +144,21 @@ func (p *PostgresAdapter) Execute(ctx context.Context, query string, args ...int
 func (p *PostgresAdapter) Query(ctx context.Context, query string, args ...interface{}) (adapters.Rows, error) {
 	start := time.Now()
 	rows, err := p.pool.Query(ctx, query, args...)
-	p.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	p.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := query
+	if len(args) > 0 {
+		command = fmt.Sprintf("%s [args: %v]", query, args)
+	}
+	response := "Query executed successfully"
+	if err == nil {
+		// Note: We can't count rows without consuming the result set
+		// So we just log that the query was successful
+		response = "Query executed, rows available"
+	}
+	p.LogActivity("QUERY", command, duration, err, response)
 
 	if err != nil {
 		return nil, err
@@ -145,7 +171,16 @@ func (p *PostgresAdapter) Query(ctx context.Context, query string, args ...inter
 func (p *PostgresAdapter) QueryRow(ctx context.Context, query string, args ...interface{}) adapters.Row {
 	start := time.Now()
 	row := p.pool.QueryRow(ctx, query, args...)
-	p.RecordRequest(time.Since(start), true) // Record as success since error is deferred
+	duration := time.Since(start)
+	p.RecordRequest(duration, true) // Record as success since error is deferred
+
+	// Log activity
+	command := query
+	if len(args) > 0 {
+		command = fmt.Sprintf("%s [args: %v]", query, args)
+	}
+	response := "Single row query executed"
+	p.LogActivity("QUERY_ROW", command, duration, nil, response)
 
 	return &postgresRow{row: row}
 }
@@ -154,7 +189,15 @@ func (p *PostgresAdapter) QueryRow(ctx context.Context, query string, args ...in
 func (p *PostgresAdapter) Begin(ctx context.Context) (adapters.Transaction, error) {
 	start := time.Now()
 	tx, err := p.pool.Begin(ctx)
-	p.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	p.RecordRequest(duration, err == nil)
+
+	// Log activity
+	response := ""
+	if err == nil {
+		response = "Transaction started successfully"
+	}
+	p.LogActivity("BEGIN", "BEGIN TRANSACTION", duration, err, response)
 
 	if err != nil {
 		return nil, err
@@ -216,17 +259,51 @@ type postgresTransaction struct {
 }
 
 func (t *postgresTransaction) Commit() error {
-	return t.tx.Commit(context.Background())
+	start := time.Now()
+	err := t.tx.Commit(context.Background())
+	duration := time.Since(start)
+
+	// Log activity
+	response := ""
+	if err == nil {
+		response = "Transaction committed successfully"
+	}
+	t.adapter.LogActivity("COMMIT", "COMMIT TRANSACTION", duration, err, response)
+
+	return err
 }
 
 func (t *postgresTransaction) Rollback() error {
-	return t.tx.Rollback(context.Background())
+	start := time.Now()
+	err := t.tx.Rollback(context.Background())
+	duration := time.Since(start)
+
+	// Log activity
+	response := ""
+	if err == nil {
+		response = "Transaction rolled back successfully"
+	}
+	t.adapter.LogActivity("ROLLBACK", "ROLLBACK TRANSACTION", duration, err, response)
+
+	return err
 }
 
 func (t *postgresTransaction) Execute(ctx context.Context, query string, args ...interface{}) (adapters.Result, error) {
 	start := time.Now()
 	tag, err := t.tx.Exec(ctx, query, args...)
-	t.adapter.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	t.adapter.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := query
+	if len(args) > 0 {
+		command = fmt.Sprintf("%s [args: %v]", query, args)
+	}
+	response := ""
+	if err == nil {
+		response = fmt.Sprintf("TX: Rows affected: %d", tag.RowsAffected())
+	}
+	t.adapter.LogActivity("TX_EXECUTE", command, duration, err, response)
 
 	if err != nil {
 		return nil, err
@@ -238,7 +315,19 @@ func (t *postgresTransaction) Execute(ctx context.Context, query string, args ..
 func (t *postgresTransaction) Query(ctx context.Context, query string, args ...interface{}) (adapters.Rows, error) {
 	start := time.Now()
 	rows, err := t.tx.Query(ctx, query, args...)
-	t.adapter.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	t.adapter.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := query
+	if len(args) > 0 {
+		command = fmt.Sprintf("%s [args: %v]", query, args)
+	}
+	response := ""
+	if err == nil {
+		response = "TX: Query executed, rows available"
+	}
+	t.adapter.LogActivity("TX_QUERY", command, duration, err, response)
 
 	if err != nil {
 		return nil, err
@@ -254,6 +343,11 @@ func (p *PostgresAdapter) GetPoolStats() *pgxpool.Stat {
 	}
 	stat := p.pool.Stat()
 	return stat
+}
+
+// GetPool returns the underlying connection pool
+func (p *PostgresAdapter) GetPool() *pgxpool.Pool {
+	return p.pool
 }
 
 // Ensure PostgresAdapter implements DatabaseAdapter
