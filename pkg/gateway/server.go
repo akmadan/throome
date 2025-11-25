@@ -87,6 +87,12 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/clusters/{cluster_id}/cache/set", s.handleCacheSet).Methods("POST")
 	api.HandleFunc("/clusters/{cluster_id}/cache/delete", s.handleCacheDelete).Methods("POST")
 
+	// Queue/Kafka operation routes
+	api.HandleFunc("/clusters/{cluster_id}/queue/publish", s.handleQueuePublish).Methods("POST")
+	api.HandleFunc("/clusters/{cluster_id}/queue/topics", s.handleListTopics).Methods("GET")
+	api.HandleFunc("/clusters/{cluster_id}/queue/topics", s.handleCreateTopic).Methods("POST")
+	api.HandleFunc("/clusters/{cluster_id}/queue/topics/{topic}", s.handleDeleteTopic).Methods("DELETE")
+
 	// Prometheus metrics endpoint
 	if s.config.Monitoring.Enabled {
 		s.router.Handle(s.config.Monitoring.MetricsPath, promhttp.Handler())

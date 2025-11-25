@@ -84,19 +84,26 @@ func (p *DockerProvisioner) ProvisionService(ctx context.Context, serviceName st
 		}
 
 	case "kafka":
+		// Use apache/kafka with KRaft mode (no Zookeeper needed)
 		imageName = "apache/kafka:latest"
 		env = []string{
-			"KAFKA_BROKER_ID=1",
+			"KAFKA_NODE_ID=1",
+			"KAFKA_PROCESS_ROLES=broker,controller",
+			"KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093",
+			fmt.Sprintf("KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:%d,CONTROLLER://0.0.0.0:9093", getInternalPort(config.Type)),
 			fmt.Sprintf("KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:%d", config.Port),
-			"KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT",
+			"KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT",
 			"KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT",
-			"KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1",
+			"KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER",
+			"KAFKA_AUTO_CREATE_TOPICS_ENABLE=true",
 		}
+		// Health check - check if port is listening (wait longer for Kafka to start)
 		healthCheck = &container.HealthConfig{
-			Test:     []string{"CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"},
-			Interval: 10 * time.Second,
-			Timeout:  5 * time.Second,
-			Retries:  5,
+			Test:        []string{"CMD-SHELL", fmt.Sprintf("timeout 5 bash -c '</dev/tcp/localhost/%d' || exit 1", getInternalPort(config.Type))},
+			Interval:    15 * time.Second,
+			Timeout:     10 * time.Second,
+			Retries:     15,
+			StartPeriod: 60 * time.Second, // Give Kafka 60 seconds to start
 		}
 
 	default:

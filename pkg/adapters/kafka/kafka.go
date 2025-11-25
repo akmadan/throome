@@ -86,13 +86,17 @@ func (k *KafkaAdapter) Ping(ctx context.Context) error {
 	start := time.Now()
 
 	conn, err := kafka.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", k.config.Host, k.config.Port))
+	duration := time.Since(start)
+
 	if err != nil {
-		k.RecordRequest(time.Since(start), false)
+		k.RecordRequest(duration, false)
+		k.LogActivity("PING", "PING", duration, err, "")
 		return err
 	}
 	defer conn.Close()
 
-	k.RecordRequest(time.Since(start), true)
+	k.RecordRequest(duration, true)
+	k.LogActivity("PING", "PING", duration, nil, "PONG")
 	return nil
 }
 
@@ -125,7 +129,17 @@ func (k *KafkaAdapter) Publish(ctx context.Context, topic string, message []byte
 		Time:  time.Now(),
 	})
 
-	k.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	k.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := fmt.Sprintf("PUBLISH to topic '%s' (size: %d bytes)", topic, len(message))
+	response := ""
+	if err == nil {
+		response = fmt.Sprintf("Message published successfully to topic '%s'", topic)
+	}
+	k.LogActivity("PUBLISH", command, duration, err, response)
+
 	return err
 }
 
@@ -140,14 +154,28 @@ func (k *KafkaAdapter) PublishWithKey(ctx context.Context, topic string, key, me
 		Time:  time.Now(),
 	})
 
-	k.RecordRequest(time.Since(start), err == nil)
+	duration := time.Since(start)
+	k.RecordRequest(duration, err == nil)
+
+	// Log activity
+	command := fmt.Sprintf("PUBLISH to topic '%s' with key '%s' (size: %d bytes)", topic, string(key), len(message))
+	response := ""
+	if err == nil {
+		response = fmt.Sprintf("Message published successfully to topic '%s' with key", topic)
+	}
+	k.LogActivity("PUBLISH_WITH_KEY", command, duration, err, response)
+
 	return err
 }
 
 // Subscribe subscribes to a topic
 func (k *KafkaAdapter) Subscribe(ctx context.Context, topic string, handler adapters.MessageHandler) error {
+	start := time.Now()
+
 	if _, exists := k.readers[topic]; exists {
-		return fmt.Errorf("already subscribed to topic: %s", topic)
+		err := fmt.Errorf("already subscribed to topic: %s", topic)
+		k.LogActivity("SUBSCRIBE", fmt.Sprintf("SUBSCRIBE to topic '%s'", topic), time.Since(start), err, "")
+		return err
 	}
 
 	brokers := []string{fmt.Sprintf("%s:%d", k.config.Host, k.config.Port)}
@@ -170,6 +198,11 @@ func (k *KafkaAdapter) Subscribe(ctx context.Context, topic string, handler adap
 	k.stopChans[topic] = stopChan
 
 	go k.consumeMessages(ctx, topic, reader, handler, stopChan)
+
+	duration := time.Since(start)
+	command := fmt.Sprintf("SUBSCRIBE to topic '%s' with group 'throome-gateway'", topic)
+	response := fmt.Sprintf("Successfully subscribed to topic '%s'", topic)
+	k.LogActivity("SUBSCRIBE", command, duration, nil, response)
 
 	return nil
 }
@@ -210,6 +243,8 @@ func (k *KafkaAdapter) consumeMessages(ctx context.Context, topic string, reader
 
 // Unsubscribe unsubscribes from a topic
 func (k *KafkaAdapter) Unsubscribe(ctx context.Context, topic string) error {
+	start := time.Now()
+
 	// Stop the consumer
 	if stopChan, exists := k.stopChans[topic]; exists {
 		close(stopChan)
@@ -219,6 +254,7 @@ func (k *KafkaAdapter) Unsubscribe(ctx context.Context, topic string) error {
 	// Close the reader
 	if reader, exists := k.readers[topic]; exists {
 		if err := reader.Close(); err != nil {
+			k.LogActivity("UNSUBSCRIBE", fmt.Sprintf("UNSUBSCRIBE from topic '%s'", topic), time.Since(start), err, "")
 			return err
 		}
 		delete(k.readers, topic)
@@ -227,13 +263,21 @@ func (k *KafkaAdapter) Unsubscribe(ctx context.Context, topic string) error {
 	// Remove handler
 	delete(k.handlers, topic)
 
+	duration := time.Since(start)
+	command := fmt.Sprintf("UNSUBSCRIBE from topic '%s'", topic)
+	response := fmt.Sprintf("Successfully unsubscribed from topic '%s'", topic)
+	k.LogActivity("UNSUBSCRIBE", command, duration, nil, response)
+
 	return nil
 }
 
 // CreateTopic creates a new topic
 func (k *KafkaAdapter) CreateTopic(ctx context.Context, topic string, config map[string]interface{}) error {
+	start := time.Now()
+
 	conn, err := kafka.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", k.config.Host, k.config.Port))
 	if err != nil {
+		k.LogActivity("CREATE_TOPIC", fmt.Sprintf("CREATE TOPIC '%s'", topic), time.Since(start), err, "")
 		return err
 	}
 	defer conn.Close()
@@ -255,31 +299,58 @@ func (k *KafkaAdapter) CreateTopic(ctx context.Context, topic string, config map
 	}
 
 	err = conn.CreateTopics(topicConfig)
+	duration := time.Since(start)
+
+	// Log activity
+	command := fmt.Sprintf("CREATE TOPIC '%s' (partitions: %d, replication: %d)", topic, numPartitions, replicationFactor)
+	response := ""
+	if err == nil {
+		response = fmt.Sprintf("Topic '%s' created successfully", topic)
+	}
+	k.LogActivity("CREATE_TOPIC", command, duration, err, response)
+
 	return err
 }
 
 // DeleteTopic deletes a topic
 func (k *KafkaAdapter) DeleteTopic(ctx context.Context, topic string) error {
+	start := time.Now()
+
 	conn, err := kafka.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", k.config.Host, k.config.Port))
 	if err != nil {
+		k.LogActivity("DELETE_TOPIC", fmt.Sprintf("DELETE TOPIC '%s'", topic), time.Since(start), err, "")
 		return err
 	}
 	defer conn.Close()
 
 	err = conn.DeleteTopics(topic)
+	duration := time.Since(start)
+
+	// Log activity
+	command := fmt.Sprintf("DELETE TOPIC '%s'", topic)
+	response := ""
+	if err == nil {
+		response = fmt.Sprintf("Topic '%s' deleted successfully", topic)
+	}
+	k.LogActivity("DELETE_TOPIC", command, duration, err, response)
+
 	return err
 }
 
 // ListTopics lists all topics
 func (k *KafkaAdapter) ListTopics(ctx context.Context) ([]string, error) {
+	start := time.Now()
+
 	conn, err := kafka.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", k.config.Host, k.config.Port))
 	if err != nil {
+		k.LogActivity("LIST_TOPICS", "LIST TOPICS", time.Since(start), err, "")
 		return nil, err
 	}
 	defer conn.Close()
 
 	partitions, err := conn.ReadPartitions()
 	if err != nil {
+		k.LogActivity("LIST_TOPICS", "LIST TOPICS", time.Since(start), err, "")
 		return nil, err
 	}
 
@@ -294,6 +365,11 @@ func (k *KafkaAdapter) ListTopics(ctx context.Context) ([]string, error) {
 	for topic := range topicMap {
 		topics = append(topics, topic)
 	}
+
+	duration := time.Since(start)
+	command := "LIST TOPICS"
+	response := fmt.Sprintf("Found %d topics", len(topics))
+	k.LogActivity("LIST_TOPICS", command, duration, nil, response)
 
 	return topics, nil
 }

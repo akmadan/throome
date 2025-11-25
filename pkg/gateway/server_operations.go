@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/akmadan/throome/internal/logger"
+	"github.com/akmadan/throome/pkg/adapters/kafka"
 	"github.com/akmadan/throome/pkg/adapters/postgres"
 	"github.com/akmadan/throome/pkg/adapters/redis"
 	"github.com/gorilla/mux"
@@ -337,6 +338,250 @@ func (s *Server) handleCacheDelete(w http.ResponseWriter, r *http.Request) {
 	if err := redisAdapter.Delete(r.Context(), req.Key); err != nil {
 		logger.Error("Failed to delete key", zap.Error(err))
 		s.errorResponse(w, http.StatusInternalServerError, "Failed to delete key", err)
+		return
+	}
+
+	s.jsonResponse(w, http.StatusOK, map[string]string{
+		"status": "success",
+	})
+}
+
+// Queue/Kafka operation request/response types
+type QueuePublishRequest struct {
+	Topic   string `json:"topic"`
+	Message []byte `json:"message"`
+	Key     []byte `json:"key,omitempty"`
+}
+
+type CreateTopicRequest struct {
+	Topic             string `json:"topic"`
+	NumPartitions     int    `json:"num_partitions"`
+	ReplicationFactor int    `json:"replication_factor"`
+}
+
+type ListTopicsResponse struct {
+	Topics []string `json:"topics"`
+}
+
+// handleQueuePublish handles message publishing to Kafka topics
+func (s *Server) handleQueuePublish(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterID := vars["cluster_id"]
+
+	var req QueuePublishRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.errorResponse(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	// Find the Kafka service in the cluster
+	config, err := s.gateway.GetClusterConfig(clusterID)
+	if err != nil {
+		s.errorResponse(w, http.StatusNotFound, "Cluster not found", err)
+		return
+	}
+
+	var kafkaService string
+	for serviceName, serviceConfig := range config.Services {
+		if serviceConfig.Type == "kafka" {
+			kafkaService = serviceName
+			break
+		}
+	}
+
+	if kafkaService == "" {
+		s.errorResponse(w, http.StatusNotFound, "No Kafka service found in cluster", nil)
+		return
+	}
+
+	// Get the adapter
+	adapter, err := s.gateway.GetAdapter(clusterID, kafkaService)
+	if err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to get Kafka adapter", err)
+		return
+	}
+
+	// Type assert to KafkaAdapter
+	kafkaAdapter, ok := adapter.(*kafka.KafkaAdapter)
+	if !ok {
+		s.errorResponse(w, http.StatusInternalServerError, "Adapter is not a KafkaAdapter", nil)
+		return
+	}
+
+	// Publish the message
+	var publishErr error
+	if len(req.Key) > 0 {
+		publishErr = kafkaAdapter.PublishWithKey(r.Context(), req.Topic, req.Key, req.Message)
+	} else {
+		publishErr = kafkaAdapter.Publish(r.Context(), req.Topic, req.Message)
+	}
+
+	if publishErr != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to publish message", publishErr)
+		return
+	}
+
+	s.jsonResponse(w, http.StatusOK, map[string]string{
+		"status": "success",
+	})
+}
+
+// handleListTopics handles listing Kafka topics
+func (s *Server) handleListTopics(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterID := vars["cluster_id"]
+
+	// Find the Kafka service in the cluster
+	config, err := s.gateway.GetClusterConfig(clusterID)
+	if err != nil {
+		s.errorResponse(w, http.StatusNotFound, "Cluster not found", err)
+		return
+	}
+
+	var kafkaService string
+	for serviceName, serviceConfig := range config.Services {
+		if serviceConfig.Type == "kafka" {
+			kafkaService = serviceName
+			break
+		}
+	}
+
+	if kafkaService == "" {
+		s.errorResponse(w, http.StatusNotFound, "No Kafka service found in cluster", nil)
+		return
+	}
+
+	// Get the adapter
+	adapter, err := s.gateway.GetAdapter(clusterID, kafkaService)
+	if err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to get Kafka adapter", err)
+		return
+	}
+
+	// Type assert to KafkaAdapter
+	kafkaAdapter, ok := adapter.(*kafka.KafkaAdapter)
+	if !ok {
+		s.errorResponse(w, http.StatusInternalServerError, "Adapter is not a KafkaAdapter", nil)
+		return
+	}
+
+	// List topics
+	topics, err := kafkaAdapter.ListTopics(r.Context())
+	if err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to list topics", err)
+		return
+	}
+
+	s.jsonResponse(w, http.StatusOK, ListTopicsResponse{
+		Topics: topics,
+	})
+}
+
+// handleCreateTopic handles creating a new Kafka topic
+func (s *Server) handleCreateTopic(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterID := vars["cluster_id"]
+
+	var req CreateTopicRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.errorResponse(w, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	// Find the Kafka service in the cluster
+	config, err := s.gateway.GetClusterConfig(clusterID)
+	if err != nil {
+		s.errorResponse(w, http.StatusNotFound, "Cluster not found", err)
+		return
+	}
+
+	var kafkaService string
+	for serviceName, serviceConfig := range config.Services {
+		if serviceConfig.Type == "kafka" {
+			kafkaService = serviceName
+			break
+		}
+	}
+
+	if kafkaService == "" {
+		s.errorResponse(w, http.StatusNotFound, "No Kafka service found in cluster", nil)
+		return
+	}
+
+	// Get the adapter
+	adapter, err := s.gateway.GetAdapter(clusterID, kafkaService)
+	if err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to get Kafka adapter", err)
+		return
+	}
+
+	// Type assert to KafkaAdapter
+	kafkaAdapter, ok := adapter.(*kafka.KafkaAdapter)
+	if !ok {
+		s.errorResponse(w, http.StatusInternalServerError, "Adapter is not a KafkaAdapter", nil)
+		return
+	}
+
+	// Create topic
+	topicConfig := map[string]interface{}{
+		"num_partitions":     req.NumPartitions,
+		"replication_factor": req.ReplicationFactor,
+	}
+
+	if err := kafkaAdapter.CreateTopic(r.Context(), req.Topic, topicConfig); err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to create topic", err)
+		return
+	}
+
+	s.jsonResponse(w, http.StatusOK, map[string]string{
+		"status": "success",
+	})
+}
+
+// handleDeleteTopic handles deleting a Kafka topic
+func (s *Server) handleDeleteTopic(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterID := vars["cluster_id"]
+	topic := vars["topic"]
+
+	// Find the Kafka service in the cluster
+	config, err := s.gateway.GetClusterConfig(clusterID)
+	if err != nil {
+		s.errorResponse(w, http.StatusNotFound, "Cluster not found", err)
+		return
+	}
+
+	var kafkaService string
+	for serviceName, serviceConfig := range config.Services {
+		if serviceConfig.Type == "kafka" {
+			kafkaService = serviceName
+			break
+		}
+	}
+
+	if kafkaService == "" {
+		s.errorResponse(w, http.StatusNotFound, "No Kafka service found in cluster", nil)
+		return
+	}
+
+	// Get the adapter
+	adapter, err := s.gateway.GetAdapter(clusterID, kafkaService)
+	if err != nil {
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to get Kafka adapter", err)
+		return
+	}
+
+	// Type assert to KafkaAdapter
+	kafkaAdapter, ok := adapter.(*kafka.KafkaAdapter)
+	if !ok {
+		s.errorResponse(w, http.StatusInternalServerError, "Adapter is not a KafkaAdapter", nil)
+		return
+	}
+
+	// Delete topic
+	if err := kafkaAdapter.DeleteTopic(r.Context(), topic); err != nil {
+		logger.Error("Failed to delete topic", zap.Error(err))
+		s.errorResponse(w, http.StatusInternalServerError, "Failed to delete topic", err)
 		return
 	}
 
